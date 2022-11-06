@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- See Relax specification: Ghidra/Framework/SoftwareModeling/data/languages/compiler_spec.rxg -->
+
+<compiler_spec>
+  <global>
+    <range space="ram"/>
+  </global>
+
+  <stackpointer register="XSP" space="ram"/>
+
+  <default_proto>
+      <prototype
+        extrapop="0"
+        stackshift="0"
+        name="__stdcall">
+      <!--
+            Notes:
+              - extrapop: bytes popped from the stack pointer across a call
+              - stackshift: bytes popped from the stack across a call
+              - see ghidra.git/Ghidra/Features/Decompiler/src/main/doc/cpsec.xml
+      -->
+	<!-- 
+      <input>
+        <pentry minsize="1" maxsize="4">
+          <register name="r1"/>
+        </pentry>
+        <pentry minsize="1" maxsize="4">
+          <register name="r2"/>
+        </pentry>
+      </input>
+      <output>
+        <pentry minsize="1" maxsize="4">
+          <register name="r0"/>
+        </pentry>
+     </output>
+	-->
+	  <input />
+	  <output />
+      <unaffected>
+        <register name="XWA"/>
+        <register name="XBC"/>
+        <register name="XDE"/>
+        <register name="XHL"/>
+        <register name="XIX"/>
+        <register name="XIY"/>
+        <register name="XIZ"/>
+        <register name="XSP"/>
+        <register name="PC"/>
+        <register name="SR"/>
+      </unaffected>
+
+    </prototype>
+  </default_proto>
+
+</compiler_spec>

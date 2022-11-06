@@ -1,0 +1,322 @@
+### dst=>(r32+d8)
+
+:ld (addr8d32),imm8         is op4_7m=0b1011 & pad3m=0b1 & addr8d32  ; op0_7=0b0000 ; imm8 { addr8d32 = imm8; }
+:ld (addr16d32),imm16       is op4_7m=0b1011 & pad3m=0b1 & addr16d32 ; op0_7=0b0010 ; imm16 { addr16d32 = imm16; }
+:pop (addr8d32)             is op4_7m=0b1011 & pad3m=0b1 & addr8d32  ; op0_7=0b0100 { pop16(addr8d32); }
+:popw (addr16d32)           is op4_7m=0b1011 & pad3m=0b1 & addr16d32 ; op0_7=0b0110 { pop16(addr16d32); }
+:ld (addr8d32),(addr16i8)   is op4_7m=0b1011 & pad3m=0b1 & addr8d32  ; op0_7=0b00010100 ; addr16i8 { addr8d32 = addr16i8; }
+:ld (addr16d32),(addr16i16) is op4_7m=0b1011 & pad3m=0b1 & addr16d32 ; op0_7=0b00010110 ; addr16i16 { addr16d32 = addr16i16; }
+
+:lda r16,addr16d32      is op4_7m=0b0010 & pad3m=0b1 & addr16d32 ; op4_7=0b1011 & pad3=0b0 & r16 { r16 = addr16d32; }
+:lda r32,addr32d32      is op4_7m=0b0011 & pad3m=0b1 & addr32d32 ; op4_7=0b1011 & pad3=0b0 & r32 { r32 = addr32d32; }
+:ld (addr8d32),r8       is op4_7m=0b1011 & pad3m=0b1 & addr8d32  ; op4_7=0b0100 & pad3=0b0 & r8 { addr8d32 = r8; }
+:ld (addr16d32),r16     is op4_7m=0b1011 & pad3m=0b1 & addr16d32 ; op4_7=0b0101 & pad3=0b0 & r16 { addr16d32 = r16; }
+:ld (addr32d32),r32     is op4_7m=0b1011 & pad3m=0b1 & addr32d32 ; op4_7=0b0110 & pad3=0b0 & r32 { addr32d32 = r32; }
+
+:andcf A,(addr8d32)     is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op0_7=0b00101000 & A {}
+:orcf  A,(addr8d32)     is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op0_7=0b00101001 & A {}
+:xorcf A,(addr8d32)     is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op0_7=0b00101010 & A {}
+:ldcf  A,(addr8d32)     is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op0_7=0b00101011 & A {}
+:stcf  A,(addr8d32)     is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(addr8d32) is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,addr8d32   is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1101 & cc & flags { if (cc) goto addr8d32; }
+:call cc,addr8d32 is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call addr8d32;
+<done>
+}
+:ret cc,addr8d32  is op4_7m=0b1011 & pad3m=0b1 & addr8d32 ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+
+### dst=>(n)
+
+:ld (addr8i8),imm8         is op0_7=0xf0 ; addr8i8  ; op0_7=0b0000 ; imm8 { addr8i8 = imm8; }
+:ld (addr8i16),imm16       is op0_7=0xf0 ; addr8i16 ; op0_7=0b0010 ; imm16 { addr8i16 = imm16; }
+:pop (addr8i8)             is op0_7=0xf0 ; addr8i8  ; op0_7=0b0100 { pop16(addr8i8); }
+:popw (addr8i16)           is op0_7=0xf0 ; addr8i16 ; op0_7=0b0110 { pop16(addr8i16); }
+:ld (addr8i8),(addr16i8)   is op0_7=0xf0 ; addr8i8  ; op0_7=0b00010100 ; addr16i8 { addr8i8 = addr16i8; }
+:ld (addr8i16),(addr16i16) is op0_7=0xf0 ; addr8i16 ; op0_7=0b00010110 ; addr16i16 { addr8i16 = addr16i16; }
+
+:lda r16,addr8i16      is op0_7=0xf0 ; addr8i16 ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = addr8i16; }
+:lda r32,addr8i32      is op0_7=0xf0 ; addr8i32 ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = addr8i32; }
+:ld (addr8i8),r8       is op0_7=0xf0 ; addr8i8  ; op4_7=0b0100 & pad3=0b0 & r8  { addr8i8 = r8; }
+:ld (addr8i16),r16     is op0_7=0xf0 ; addr8i16 ; op4_7=0b0101 & pad3=0b0 & r16 { addr8i16 = r16; }
+:ld (addr8i32),r32     is op0_7=0xf0 ; addr8i32 ; op4_7=0b0110 & pad3=0b0 & r32 { addr8i32 = r32; }
+
+:andcf A,(addr8i8)     is op0_7=0xf0 ; addr8i8 ; op0_7=0b00101000 & A {}
+:orcf  A,(addr8i8)     is op0_7=0xf0 ; addr8i8 ; op0_7=0b00101001 & A {}
+:xorcf A,(addr8i8)     is op0_7=0xf0 ; addr8i8 ; op0_7=0b00101010 & A {}
+:ldcf  A,(addr8i8)     is op0_7=0xf0 ; addr8i8 ; op0_7=0b00101011 & A {}
+:stcf  A,(addr8i8)     is op0_7=0xf0 ; addr8i8 ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(addr8i8) is op0_7=0xf0 ; addr8i8 ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,addr8i8   is op0_7=0xf0 ; addr8i8 ; op4_7=0b1101 & cc & flags { if (cc) goto addr8i8; }
+:call cc,addr8i8 is op0_7=0xf0 ; addr8i8 ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call addr8i8;
+<done>
+}
+:ret cc,addr8i8  is op0_7=0xf0 ; addr8i8 ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+
+### dst=>(nn)
+
+:ld (addr16i16),imm8         is op0_7=0xf1 ; addr16i16 ; op0_7=0b0000 ; imm8 { addr16i16 = imm8; }
+:ld (addr16i16),imm16        is op0_7=0xf1 ; addr16i16 ; op0_7=0b0010 ; imm16 { addr16i16 = imm16; }
+:pop (addr16i8)              is op0_7=0xf1 ; addr16i8  ; op0_7=0b0100 { pop16(addr16i8); }
+:popw (addr16i16)            is op0_7=0xf1 ; addr16i16 ; op0_7=0b0110 { pop16(addr16i16); }
+:ld (addr16i8),(addr_16i8)   is op0_7=0xf1 ; addr16i8  ; op0_7=0b00010100 ; addr_16i8 { addr16i8 = addr_16i8; }
+:ld (addr16i16),(addr_16i16) is op0_7=0xf1 ; addr16i16 ; op0_7=0b00010110 ; addr_16i16 { addr16i16 = addr_16i16; }
+
+:lda r16,addr16i16       is op0_7=0xf1 ; addr16i16 ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = addr16i16; }
+:lda r32,addr16i32       is op0_7=0xf1 ; addr16i32 ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = addr16i32; }
+:ld (addr16i8),r8        is op0_7=0xf1 ; addr16i8  ; op4_7=0b0100 & pad3=0b0 & r8  { addr16i8 = r8; }
+:ld (addr16i16),r16      is op0_7=0xf1 ; addr16i16 ; op4_7=0b0101 & pad3=0b0 & r16 { addr16i16 = r16; }
+:ld (addr16i32),r32      is op0_7=0xf1 ; addr16i32 ; op4_7=0b0110 & pad3=0b0 & r32 { addr16i32 = r32; }
+
+:andcf A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101000 & A {}
+:orcf  A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101001 & A {}
+:xorcf A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101010 & A {}
+:ldcf  A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101011 & A {}
+:stcf  A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(addr16i16) is op0_7=0xf1 ; addr16i16 ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,addr16i16   is op0_7=0xf1 ; addr16i16 ; op4_7=0b1101 & cc & flags { if (cc) goto addr16i16; }
+:call cc,addr16i16 is op0_7=0xf1 ; addr16i16 ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call addr16i16;
+<done>
+}
+:ret cc,addr16i16  is op0_7=0xf1 ; addr16i16 ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+
+### dst=>(nnn)
+
+:ld (addr24i8),imm8         is op0_7=0xf2 ; addr24i8  ; op0_7=0b0000 ; imm8 { addr24i8 = imm8; }
+:ld (addr24i16),imm16       is op0_7=0xf2 ; addr24i16 ; op0_7=0b0010 ; imm16 { addr24i16 = imm16; }
+:pop (addr24i8)             is op0_7=0xf2 ; addr24i8  ; op0_7=0b0100 { pop16(addr24i8); }
+:popw (addr24i16)           is op0_7=0xf2 ; addr24i16 ; op0_7=0b0110 { pop16(addr24i16); }
+:ld (addr24i8),(addr16i8)   is op0_7=0xf2 ; addr24i8  ; op0_7=0b00010100 ; addr16i8 { addr24i8 = addr16i8; }
+:ld (addr24i16),(addr16i16) is op0_7=0xf2 ; addr24i16 ; op0_7=0b00010110 ; addr16i16 { addr24i16 = addr16i16; }
+
+:lda r16,addr24i16       is op0_7=0xf2 ; addr24i16 ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = addr24i16; }
+:lda r32,addr24i32       is op0_7=0xf2 ; addr24i32 ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = addr24i32; }
+:ld (addr24i8),r8        is op0_7=0xf2 ; addr24i8  ; op4_7=0b0100 & pad3=0b0 & r8  { addr24i8 = r8; }
+:ld (addr24i16),r16      is op0_7=0xf2 ; addr24i16 ; op4_7=0b0101 & pad3=0b0 & r16 { addr24i16 = r16; }
+:ld (addr24i32),r32      is op0_7=0xf2 ; addr24i32 ; op4_7=0b0110 & pad3=0b0 & r32 { addr24i32 = r32; }
+
+:andcf A,(addr24i24)     is op0_7=0xf2 ; addr24i24 ; op0_7=0b00101000 & A {}
+:orcf  A,(addr24i24)     is op0_7=0xf2 ; addr24i24 ; op0_7=0b00101001 & A {}
+:xorcf A,(addr24i24)     is op0_7=0xf2 ; addr24i24 ; op0_7=0b00101010 & A {}
+:ldcf  A,(addr24i24)     is op0_7=0xf2 ; addr24i24 ; op0_7=0b00101011 & A {}
+:stcf  A,(addr24i24)     is op0_7=0xf2 ; addr24i24 ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(addr24i24) is op0_7=0xf2 ; addr24i24 ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,addr24i24   is op0_7=0xf2 ; addr24i24 ; op4_7=0b1101 & cc & flags { if (cc) goto addr24i24; }
+:call cc,addr24i24 is op0_7=0xf2 ; addr24i24 ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call addr24i24;
+<done>
+}
+:ret cc,addr24i24  is op0_7=0xf2 ; addr24i24 ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+
+### dst=>(mem)
+
+:ld (r32b),imm8        is op0_7=0xf3 ; r32b  ; op0_7=0b0000 ; imm8 { r32b = imm8; }
+:ld (r32b),imm16       is op0_7=0xf3 ; r32b ; op0_7=0b0010 ; imm16 { r32b = imm16; }
+:pop (r32b)            is op0_7=0xf3 ; r32b  ; op0_7=0b0100 { pop16(r32b); }
+:popw (r32b)           is op0_7=0xf3 ; r32b ; op0_7=0b0110 { pop16(r32b); }
+:ld (r32b),(addr16i8)  is op0_7=0xf3 ; r32b  ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b = tmp; }
+:ld (r32b),(addr16i16) is op0_7=0xf3 ; r32b ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b = tmp; }
+
+:lda r16,r32b       is op0_7=0xf3 ; r32b ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b:2; }
+:lda r32,r32b       is op0_7=0xf3 ; r32b ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b; }
+:ld (r32b),r8       is op0_7=0xf3 ; r32b  ; op4_7=0b0100 & pad3=0b0 & r8  { r32b = zext(r8); }
+:ld (r32b),r16      is op0_7=0xf3 ; r32b ; op4_7=0b0101 & pad3=0b0 & r16 { r32b = zext(r16); }
+:ld (r32b),r32      is op0_7=0xf3 ; r32b ; op4_7=0b0110 & pad3=0b0 & r32 { r32b = r32; }
+
+:andcf A,(r32b)     is op0_7=0xf3 ; r32b ; op0_7=0b00101000 & A {}
+:orcf  A,(r32b)     is op0_7=0xf3 ; r32b ; op0_7=0b00101001 & A {}
+:xorcf A,(r32b)     is op0_7=0xf3 ; r32b ; op0_7=0b00101010 & A {}
+:ldcf  A,(r32b)     is op0_7=0xf3 ; r32b ; op0_7=0b00101011 & A {}
+:stcf  A,(r32b)     is op0_7=0xf3 ; r32b ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(r32b) is op0_7=0xf3 ; r32b ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,r32b   is op0_7=0xf3 ; r32b ; op4_7=0b1101 & cc & flags { if (cc) goto r32b; }
+:call cc,r32b is op0_7=0xf3 ; r32b ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call r32b;
+<done>
+}
+:ret cc,r32b  is op0_7=0xf3 ; r32b ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+
+### dst=>(-xrr)
+
+:ld ("-"^r32b),imm8        is op0_7=0xf4 ; r32b  ; op0_7=0b0000 ; imm8 { r32b = imm8; }
+:ld ("-"^r32b),imm16       is op0_7=0xf4 ; r32b ; op0_7=0b0010 ; imm16 { r32b = imm16; }
+:pop ("-"^r32b)            is op0_7=0xf4 ; r32b  ; op0_7=0b0100 { pop16(r32b); }
+:popw ("-"^r32b)           is op0_7=0xf4 ; r32b ; op0_7=0b0110 { pop16(r32b); }
+:ld ("-"^r32b),(addr16i8)  is op0_7=0xf4 ; r32b  ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b = tmp; }
+:ld ("-"^r32b),(addr16i16) is op0_7=0xf4 ; r32b ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b = tmp; }
+
+:lda r16,"-"^r32b       is op0_7=0xf4 ; r32b ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b:2; }
+:lda r32,"-"^r32b       is op0_7=0xf4 ; r32b ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b; }
+:ld ("-"^r32b),r8       is op0_7=0xf4 ; r32b  ; op4_7=0b0100 & pad3=0b0 & r8  { r32b = zext(r8); }
+:ld ("-"^r32b),r16      is op0_7=0xf4 ; r32b ; op4_7=0b0101 & pad3=0b0 & r16 { r32b = zext(r16); }
+:ld ("-"^r32b),r32      is op0_7=0xf4 ; r32b ; op4_7=0b0110 & pad3=0b0 & r32 { r32b = r32; }
+
+:andcf A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101000 & A {}
+:orcf  A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101001 & A {}
+:xorcf A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101010 & A {}
+:ldcf  A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101011 & A {}
+:stcf  A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,"-"^r32b   is op0_7=0xf4 ; r32b ; op4_7=0b1101 & cc & flags { if (cc) goto r32b; }
+:call cc,"-"^r32b is op0_7=0xf4 ; r32b ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call r32b;
+<done>
+}
+:ret cc,"-"^r32b  is op0_7=0xf4 ; r32b ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+
+### dst=>(xrr+)
+
+:ld (r32b^"+"),imm8        is op0_7=0xf5 ; r32b ; op0_7=0b0000 ; imm8 { r32b = imm8; }
+:ld (r32b^"+"),imm16       is op0_7=0xf5 ; r32b ; op0_7=0b0010 ; imm16 { r32b = imm16; }
+:pop (r32b^"+")            is op0_7=0xf5 ; r32b ; op0_7=0b0100 { pop16(r32b); }
+:popw (r32b^"+")           is op0_7=0xf5 ; r32b ; op0_7=0b0110 { pop16(r32b); }
+:ld (r32b^"+"),(addr16i8)  is op0_7=0xf5 ; r32b ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b = tmp; }
+:ld (r32b^"+"),(addr16i16) is op0_7=0xf5 ; r32b ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b = tmp; }
+
+:lda r16,r32b^"+"       is op0_7=0xf5 ; r32b ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b:2; }
+:lda r32,r32b^"+"       is op0_7=0xf5 ; r32b ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b; }
+:ld (r32b^"+"),r8       is op0_7=0xf5 ; r32b ; op4_7=0b0100 & pad3=0b0 & r8  { r32b = zext(r8); }
+:ld (r32b^"+"),r16      is op0_7=0xf5 ; r32b ; op4_7=0b0101 & pad3=0b0 & r16 { r32b = zext(r16); }
+:ld (r32b^"+"),r32      is op0_7=0xf5 ; r32b ; op4_7=0b0110 & pad3=0b0 & r32 { r32b = r32; }
+
+:andcf A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101000 & A {}
+:orcf  A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101001 & A {}
+:xorcf A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101010 & A {}
+:ldcf  A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101011 & A {}
+:stcf  A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101100 & A {}
+
+:andcf bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+
+:jp cc,r32b^"+"   is op0_7=0xf5 ; r32b ; op4_7=0b1101 & cc & flags { if (cc) goto r32b; }
+:call cc,r32b^"+" is op0_7=0xf5 ; r32b ; op4_7=0b1110 & cc & flags {
+    if (!cc) goto <done>;
+    push32(&:4 inst_next);
+    call r32b;
+<done>
+}
+:ret cc,r32b^"+"  is op0_7=0xf5 ; r32b ; op4_7=0b1111 & cc & flags {
+    if (!cc) goto <done>;
+    pop32(PC);
+    return [PC];
+<done>
+}
+

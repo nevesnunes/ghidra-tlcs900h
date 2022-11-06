@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- See Relax specification: Ghidra/Framework/SoftwareModeling/data/languages/language_definitions.rxg -->
+
+<language_definitions>
+<!-- Uncomment the following to make the language available in Ghidra -->
+   <language processor="TLCS900H"
+            endian="little"
+            size="32"
+            variant="default"
+            version="1.0"
+            slafile="tlcs900h.sla"
+            processorspec="tlcs900h.pspec"
+            id="TLCS900H:LE:32:default">
+    <description>Toshiba TLCS-900/H</description>
+    <compiler name="default" spec="tlcs900h.cspec" id="default"/>
+  </language>
+</language_definitions>

@@ -1,0 +1,40 @@
+# TLCS900H sleigh specification file
+
+define endian=little;
+define alignment=1;
+define space ram type=ram_space size=4 default;
+define space register type=register_space size=4;
+
+# Current bank
+define register offset=0x00 size=4 [ XWA XBC XDE XHL XIX XIY XIZ XSP PC SR CR ];
+define register offset=0x00 size=2 [ WA _ BC _ DE _ HL _ IX _ IY _ IZ _ SP _ ];
+define register offset=0x00 size=1 [ W A _ _ B C _ _ D E _ _ H L _ _ F ];
+define register offset=0x20 size=2 [ RWA QWA RBC QBC RDE QDE RHL QHL RIX QIX RIY QIY RIZ QIZ RSP QSP ];
+define register offset=0x20 size=1 [ _ _ QA QW _ _ QC QB _ _ QE QD _ _ QL QH IXL IXH QIXL QIXH IYL IYH QIYL QIYH IZL IZH QIZL QIZH SPL SPH QSPL QSPH ];
+# Previous bank
+define register offset=0x40 size=4 [ XWA_P XBC_P XDE_P XHL_P ];
+define register offset=0x40 size=2 [ RWA_P QWA_P RBC_P QBC_P RDE_P QDE_P RHL_P QHL_P ];
+define register offset=0x40 size=1 [ RA_P RW_P QA_P QW_P RC_P RB_P QC_P QB_P RE_P RD_P QE_P QD_P RL_P RH_P QL_P QH_P ];
+# Banks 0..3
+define register offset=0x50 size=4 [ XWA_0 XBC_0 XDE_0 XHL_0 ];
+define register offset=0x50 size=2 [ RWA_0 QWA_0 RBC_0 QBC_0 RDE_0 QDE_0 RHL_0 QHL_0 ];
+define register offset=0x50 size=1 [ RA_0 RW_0 QA_0 QW_0 RC_0 RB_0 QC_0 QB_0 RE_0 RD_0 QE_0 QD_0 RL_0 RH_0 QL_0 QH_0 ];
+define register offset=0x60 size=4 [ XWA_1 XBC_1 XDE_1 XHL_1 ];
+define register offset=0x60 size=2 [ RWA_1 QWA_1 RBC_1 QBC_1 RDE_1 QDE_1 RHL_1 QHL_1 ];
+define register offset=0x60 size=1 [ RA_1 RW_1 QA_1 QW_1 RC_1 RB_1 QC_1 QB_1 RE_1 RD_1 QE_1 QD_1 RL_1 RH_1 QL_1 QH_1 ];
+define register offset=0x70 size=4 [ XWA_2 XBC_2 XDE_2 XHL_2 ];
+define register offset=0x70 size=2 [ RWA_2 QWA_2 RBC_2 QBC_2 RDE_2 QDE_2 RHL_2 QHL_2 ];
+define register offset=0x70 size=1 [ RA_2 RW_2 QA_2 QW_2 RC_2 RB_2 QC_2 QB_2 RE_2 RD_2 QE_2 QD_2 RL_2 RH_2 QL_2 QH_2 ];
+define register offset=0x80 size=4 [ XWA_3 XBC_3 XDE_3 XHL_3 ];
+define register offset=0x80 size=2 [ RWA_3 QWA_3 RBC_3 QBC_3 RDE_3 QDE_3 RHL_3 QHL_3 ];
+define register offset=0x80 size=1 [ RA_3 RW_3 QA_3 QW_3 RC_3 RB_3 QC_3 QB_3 RE_3 RD_3 QE_3 QD_3 RL_3 RH_3 QL_3 QH_3 ];
+
+# Flag bits
+@define C_flag  "F[0,1]" # C: Carry
+@define N_flag  "F[1,1]" # N: Add/Subtract
+@define PV_flag "F[2,1]" # PV: Parity/Overflow
+@define H_flag  "F[4,1]" # H: Half Carry
+@define Z_flag  "F[6,1]" # Z: Zero
+@define S_flag  "F[7,1]" # S: Sign
+
+@include "tlcs900h.sinc"
