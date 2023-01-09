@@ -1,4 +1,4 @@
-### dst=>(r32+d8)
+### dst=>(r32+d)
 
 :ld (addr8d32),imm8         is op4_7m=0b1011 & pad3m=0b1 & addr8d32  ; op0_7=0b0000 ; imm8 { addr8d32 = imm8; }
 :ld (addr16d32),imm16       is op4_7m=0b1011 & pad3m=0b1 & addr16d32 ; op0_7=0b0010 ; imm16 { addr16d32 = imm16; }
@@ -101,9 +101,9 @@
 
 :lda r16,addr16i16       is op0_7=0xf1 ; addr16i16 ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = addr16i16; }
 :lda r32,addr16i32       is op0_7=0xf1 ; addr16i32 ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = addr16i32; }
-:ld (addr16i8),r8        is op0_7=0xf1 ; addr16i8  ; op4_7=0b0100 & pad3=0b0 & r8  { addr16i8 = r8; }
-:ld (addr16i16),r16      is op0_7=0xf1 ; addr16i16 ; op4_7=0b0101 & pad3=0b0 & r16 { addr16i16 = r16; }
-:ld (addr16i32),r32      is op0_7=0xf1 ; addr16i32 ; op4_7=0b0110 & pad3=0b0 & r32 { addr16i32 = r32; }
+:ld (addr16),r8       is op0_7=0xf1 ; addr16 ; op4_7=0b0100 & pad3=0b0 & r8  { addr16 = zext(r8); }
+:ld (addr16),r16      is op0_7=0xf1 ; addr16 ; op4_7=0b0101 & pad3=0b0 & r16 { addr16 = r16; }
+:ld (addr16),r32      is op0_7=0xf1 ; addr16 ; op4_7=0b0110 & pad3=0b0 & r32 { local tmp = r32 & 0xffff; addr16 = tmp:2; }
 
 :andcf A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101000 & A {}
 :orcf  A,(addr16i16)     is op0_7=0xf1 ; addr16i16 ; op0_7=0b00101001 & A {}
