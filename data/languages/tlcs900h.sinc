@@ -8,16 +8,19 @@ define pcodeop software_interrupt;
 
 define token op8 (8)
    op4_7 = (4,7)
+   op0_3 = (0,3)
    op0_7 = (0,7)
    flags = (0,3)
    interrupts = (0,3)
    r8 = (0,2)
    r16 = (0,2)
    r32 = (0,2)
+   r32b = (0,7)
    r32b8 = (0,7)
    r32b16 = (0,7)
    r32b32 = (0,7)
-   r32b = (0,7)
+   r32b_bits2_7 = (2,7)
+   r32b_bits0_1 = (0,1)
    bits0_2 = (0,2)
    pad3 = (3,3)
 ;
@@ -133,6 +136,25 @@ attach variables [ r32b32 r32b ] [
     XWA_P XWA_P XWA_P XWA_P XBC_P XBC_P XBC_P XBC_P XDE_P XDE_P XDE_P XDE_P XHL_P XHL_P XHL_P XHL_P
     XWA   XWA   XWA   XWA   XBC   XBC   XBC   XBC   XDE   XDE   XDE   XDE   XHL   XHL   XHL   XHL
     XIX   XIX   XIX   XIX   XIY   XIY   XIY   XIY   XIZ   XIZ   XIZ   XIZ   XSP   XSP   XSP   XSP
+];
+# Banked register encoded in 6bits, see "Appendix A: Memory addressing mode specify code"
+attach variables [ r32b_bits2_7 ] [
+    XWA_0 XBC_0 XDE_0 XHL_0
+    XWA_1 XBC_1 XDE_1 XHL_1
+    XWA_2 XBC_2 XDE_2 XHL_2
+    XWA_3 XBC_3 XDE_3 XHL_3
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    _     _     _     _    
+    XWA_P XBC_P XDE_P XHL_P
+    XWA   XBC   XDE   XHL  
+    XIX   XIY   XIZ   XSP  
 ];
 
 # Macros
@@ -293,6 +315,23 @@ addr32m32: rm32 is rm32 { export *:4 rm32; }
 addr8r32:  r32 is r32 { export *:1 r32; }
 addr16r32: r32 is r32 { export *:2 r32; }
 addr32r32: r32 is r32 { export *:4 r32; }
+
+r32b_d00: r32b_bits2_7     is r32b_bits2_7 & r32b_bits0_1=0b00 { export r32b_bits2_7; }
+r32b_pre: "-"^r32b_bits2_7 is r32b_bits2_7 & r32b_bits0_1 { r32b_bits2_7 = r32b_bits2_7 - (r32b_bits0_1 << 1); export r32b_bits2_7; }
+r32b_pos: r32b_bits2_7^"+" is r32b_bits2_7 & r32b_bits0_1 { tmp = r32b_bits2_7; r32b_bits2_7 = r32b_bits2_7 + (r32b_bits0_1 << 1); export tmp; }
+r32b_d16: r32b_bits2_7^"+"^imm16 is r32b_bits2_7 & r32b_bits0_1=0b01 ; imm16 { tmp:4 = *:4 (r32b_bits2_7+imm16); export tmp; }
+r32b_drb: r32b32^"+"^r32b8       is op0_7=0b011 ; r32b32 ; r32b8  { tmp:4 = *:4 (r32b32+zext(r32b8)); export tmp; }
+r32b_drb: r32b32^"+"^r32b16      is op0_7=0b111 ; r32b32 ; r32b16 { tmp:4 = *:4 (r32b32+zext(r32b16)); export tmp; }
+
+#r32b_d00: r32b_bits2_7     is op4_7=0b0011 ; r32b_bits2_7 & r32b_bits0_1=0b00 { export r32b_bits2_7; }
+#r32b_pre: "-"^r32b_bits2_7 is op4_7=0b0100 ; r32b_bits2_7 & r32b_bits0_1 { r32b_bits2_7 = r32b_bits2_7 - (r32b_bits0_1 << 1); export r32b_bits2_7; }
+#r32b_pos: r32b_bits2_7^"+" is op4_7=0b0100 ; r32b_bits2_7 & r32b_bits0_1 { tmp = r32b_bits2_7; r32b_bits2_7 = r32b_bits2_7 + (r32b_bits0_1 << 1); export tmp; }
+#r32b_d16: r32b_bits2_7^"+"^imm16 is r32b_bits2_7 & r32b_bits0_1=0b01 ; imm16 { tmp:4 = *:4 (r32b_bits2_7+imm16); export tmp; }
+#r32b_drb: r32b32^"+"^r32b8       is op0_7=0b011 ; r32b32 ; r32b8  { tmp:4 = *:4 (r32b32+zext(r32b8)); export tmp; }
+#r32b_drb: r32b32^"+"^r32b16      is op0_7=0b111 ; r32b32 ; r32b16 { tmp:4 = *:4 (r32b32+zext(r32b16)); export tmp; }
+#r32b: r32b_d00 is r32b_d00 { export r32b_d00; }
+#r32b: r32b_pre is r32b_pre { export r32b_pre; }
+#r32b: r32b_pos is r32b_pos { export r32b_pos; }
 
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
 rel16: reloc is simm16 [ reloc=((inst_next >> 16) << 16) | ((inst_next + simm16) & 0xFFFF); ] { export *[ram]:4 reloc; }
@@ -528,9 +567,9 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
 :dec  bits8_10n,rm8  is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1100 & pad3m=0b1 & rm8 { sub(rm8,bits8_10n); }
 :dec  bits8_10n,rm16 is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1101 & pad3m=0b1 & rm16 { sub(rm16,bits8_10n); }
 :dec  bits8_10n,rm32 is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1110 & pad3m=0b1 & rm32 { sub(rm32,bits8_10n); }
-:scc  cc16,rm8       is op12_15n=0b0111 & cc16 & flags16 & op4_7m=0b1100 & pad3m=0b1 & rm8 {} 
-:scc  cc16,rm16      is op12_15n=0b0111 & cc16 & flags16 & op4_7m=0b1101 & pad3m=0b1 & rm16 {} 
-:scc  cc16,rm32      is op12_15n=0b0111 & cc16 & flags16 & op4_7m=0b1110 & pad3m=0b1 & rm32 {} 
+:scc  cc16,rm8       is op12_15n=0b0111 & cc16 & flags16 & op4_7m=0b1100 & pad3m=0b1 & rm8 {}
+:scc  cc16,rm16      is op12_15n=0b0111 & cc16 & flags16 & op4_7m=0b1101 & pad3m=0b1 & rm16 {}
+:scc  cc16,rm32      is op12_15n=0b0111 & cc16 & flags16 & op4_7m=0b1110 & pad3m=0b1 & rm32 {}
 :add  rn8,rm8        is op12_15n=0b1000 & pad11n=0b0 & rn8 & op4_7m=0b1100 & pad3m=0b1 & rm8 { add(rn8,rm8); }
 :add  rn16,rm16      is op12_15n=0b1000 & pad11n=0b0 & rn16 & op4_7m=0b1101 & pad3m=0b1 & rm16 { add(rn16,rm16); }
 :add  rn32,rm32      is op12_15n=0b1000 & pad11n=0b0 & rn32 & op4_7m=0b1110 & pad3m=0b1 & rm32 { add(rn32,rm32); }
@@ -673,119 +712,119 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
 
 #### R,(mem)
 
-:push  (addr8m32)            is op8_15n=0b0100 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { push16(addr8m32); } 
-:pushw (addr16m32)           is op8_15n=0b0100 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { push16(addr16m32); } 
-:rld   A,(addr8m32)          is op8_15n=0b0110 & A & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { } 
-:rrd   A,(addr8m32)          is op8_15n=0b0111 & A & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { } 
-:ld    (addr16),(addr16m32)  is op8_15n=0b0001 & op4_7m=0b1000 & pad3m=0b0 & addr16m32 ; addr16 { addr16 = addr16m32; } 
-:ldw   (addr16),(addr16m32)  is op8_15n=0b0001 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; addr16 { addr16 = addr16m32; } 
+:push  (addr8m32)            is op8_15n=0b0100 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { push16(addr8m32); }
+:pushw (addr16m32)           is op8_15n=0b0100 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { push16(addr16m32); }
+:rld   A,(addr8m32)          is op8_15n=0b0110 & A & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { }
+:rrd   A,(addr8m32)          is op8_15n=0b0111 & A & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { }
+:ld    (addr16),(addr16m32)  is op8_15n=0b0001 & op4_7m=0b1000 & pad3m=0b0 & addr16m32 ; addr16 { addr16 = addr16m32; }
+:ldw   (addr16),(addr16m32)  is op8_15n=0b0001 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; addr16 { addr16 = addr16m32; }
 :ld    rn8,(addr8m32)        is op12_15n=0b0010 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { rn8 = addr8m32; }
 :ld    rn16,(addr16m32)      is op12_15n=0b0010 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { rn16 = addr16m32; }
 :ld    rn32,(addr32m32)      is op12_15n=0b0010 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { rn32 = addr32m32; }
-:ex    (addr8m32),rn8        is op12_15n=0b0011 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:ex    (addr16m32),rn16      is op12_15n=0b0011 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:add   (addr8m32),imm8       is op8_15n=0x38 & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { add(addr8m32,imm8); } 
-:add   (addr16m32),imm16     is op8_15n=0x38 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { add(addr16m32,imm16); } 
-:adc   (addr8m32),imm8       is op8_15n=0x39 & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { adc(addr8m32,imm8); } 
-:adc   (addr16m32),imm16     is op8_15n=0x39 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { adc(addr16m32,imm16); } 
-:sub   (addr8m32),imm8       is op8_15n=0x3a & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { sub(addr8m32,imm8); } 
-:sub   (addr16m32),imm16     is op8_15n=0x3a & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { sub(addr16m32,imm16); } 
-:sbc   (addr8m32),imm8       is op8_15n=0x3b & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { sbc(addr8m32,imm8); } 
-:sbc   (addr16m32),imm16     is op8_15n=0x3b & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { sbc(addr16m32,imm16); } 
-:and   (addr8m32),imm8       is op8_15n=0x3c & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { and(addr8m32,imm8); } 
-:and   (addr16m32),imm16     is op8_15n=0x3c & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { and(addr16m32,imm16); } 
-:xor   (addr8m32),imm8       is op8_15n=0x3d & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { xor(addr8m32,imm8); } 
-:xor   (addr16m32),imm16     is op8_15n=0x3d & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { xor(addr16m32,imm16); } 
-:or    (addr8m32),imm8       is op8_15n=0x3e & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { or(addr8m32,imm8); } 
-:or    (addr16m32),imm16     is op8_15n=0x3e & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { or(addr16m32,imm16); } 
-:cp    (addr8m32),imm8       is op8_15n=0x3f & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { cp(addr8m32,imm8); } 
-:cp    (addr16m32),imm16     is op8_15n=0x3f & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { cp(addr16m32,imm16); } 
-:mul   rn8,(addr8m32)        is op12_15n=0b0100 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { mul(rn8,addr8m32); } 
-:mul   rn16,(addr16m32)      is op12_15n=0b0100 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { mul(rn16,addr16m32); } 
-:mul   rn32,(addr32m32)      is op12_15n=0b0100 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { mul(rn32,addr32m32); } 
-:muls  rn8,(addr8m32)        is op12_15n=0b0100 & pad11n=0b1 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { muls(rn8,addr8m32); } 
-:muls  rn16,(addr16m32)      is op12_15n=0b0100 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { muls(rn16,addr16m32); } 
-:muls  rn32,(addr32m32)      is op12_15n=0b0100 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { muls(rn32,addr32m32); } 
-:div   rn8,(addr8m32)        is op12_15n=0b0101 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { div(rn8,addr8m32); } 
-:div   rn16,(addr16m32)      is op12_15n=0b0101 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { div(rn16,addr16m32); } 
-:div   rn32,(addr32m32)      is op12_15n=0b0101 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { div(rn32,addr32m32); } 
-:divs  rn8,(addr8m32)        is op12_15n=0b0101 & pad11n=0b1 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { divs(rn8,addr8m32); } 
-:divs  rn16,(addr16m32)      is op12_15n=0b0101 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { divs(rn16,addr16m32); } 
-:divs  rn32,(addr32m32)      is op12_15n=0b0101 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { divs(rn32,addr32m32); } 
-:inc   bits8_10n,(addr8m32)  is op12_15n=0b0110 & pad11n=0b0 & bits8_10n & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { add(addr8m32,bits8_10n); } 
-:inc   bits8_10n,(addr16m32) is op12_15n=0b0110 & pad11n=0b0 & bits8_10n & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { add(addr16m32,bits8_10n); } 
-:inc   bits8_10n,(addr32m32) is op12_15n=0b0110 & pad11n=0b0 & bits8_10n & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { add(addr32m32,bits8_10n); } 
-:dec   bits8_10n,(addr8m32)  is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sub(addr8m32,bits8_10n); } 
-:dec   bits8_10n,(addr16m32) is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sub(addr16m32,bits8_10n); } 
-:dec   bits8_10n,(addr32m32) is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sub(addr32m32,bits8_10n); } 
-:rlc   (addr8m32)            is op8_15n=0x78 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:rlcw  (addr16m32)           is op8_15n=0x78 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:rrc   (addr8m32)            is op8_15n=0x79 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:rrcw  (addr16m32)           is op8_15n=0x79 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:rl    (addr8m32)            is op8_15n=0x7a & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:rlw   (addr16m32)           is op8_15n=0x7a & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:rr    (addr8m32)            is op8_15n=0x7b & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:rrw   (addr16m32)           is op8_15n=0x7b & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:sla   (addr8m32)            is op8_15n=0x7c & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:slaw  (addr16m32)           is op8_15n=0x7c & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:sra   (addr8m32)            is op8_15n=0x7d & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:sraw  (addr16m32)           is op8_15n=0x7d & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:sll   (addr8m32)            is op8_15n=0x7e & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:sllw  (addr16m32)           is op8_15n=0x7e & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
-:srl   (addr8m32)            is op8_15n=0x7f & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {} 
-:srlw  (addr16m32)           is op8_15n=0x7f & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {} 
+:ex    (addr8m32),rn8        is op12_15n=0b0011 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:ex    (addr16m32),rn16      is op12_15n=0b0011 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:add   (addr8m32),imm8       is op8_15n=0x38 & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { add(addr8m32,imm8); }
+:add   (addr16m32),imm16     is op8_15n=0x38 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { add(addr16m32,imm16); }
+:adc   (addr8m32),imm8       is op8_15n=0x39 & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { adc(addr8m32,imm8); }
+:adc   (addr16m32),imm16     is op8_15n=0x39 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { adc(addr16m32,imm16); }
+:sub   (addr8m32),imm8       is op8_15n=0x3a & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { sub(addr8m32,imm8); }
+:sub   (addr16m32),imm16     is op8_15n=0x3a & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { sub(addr16m32,imm16); }
+:sbc   (addr8m32),imm8       is op8_15n=0x3b & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { sbc(addr8m32,imm8); }
+:sbc   (addr16m32),imm16     is op8_15n=0x3b & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { sbc(addr16m32,imm16); }
+:and   (addr8m32),imm8       is op8_15n=0x3c & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { and(addr8m32,imm8); }
+:and   (addr16m32),imm16     is op8_15n=0x3c & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { and(addr16m32,imm16); }
+:xor   (addr8m32),imm8       is op8_15n=0x3d & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { xor(addr8m32,imm8); }
+:xor   (addr16m32),imm16     is op8_15n=0x3d & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { xor(addr16m32,imm16); }
+:or    (addr8m32),imm8       is op8_15n=0x3e & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { or(addr8m32,imm8); }
+:or    (addr16m32),imm16     is op8_15n=0x3e & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { or(addr16m32,imm16); }
+:cp    (addr8m32),imm8       is op8_15n=0x3f & op4_7m=0b1000 & pad3m=0b0 & addr8m32  ; imm8 { cp(addr8m32,imm8); }
+:cp    (addr16m32),imm16     is op8_15n=0x3f & op4_7m=0b1001 & pad3m=0b0 & addr16m32 ; imm16 { cp(addr16m32,imm16); }
+:mul   rn8,(addr8m32)        is op12_15n=0b0100 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { mul(rn8,addr8m32); }
+:mul   rn16,(addr16m32)      is op12_15n=0b0100 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { mul(rn16,addr16m32); }
+:mul   rn32,(addr32m32)      is op12_15n=0b0100 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { mul(rn32,addr32m32); }
+:muls  rn8,(addr8m32)        is op12_15n=0b0100 & pad11n=0b1 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { muls(rn8,addr8m32); }
+:muls  rn16,(addr16m32)      is op12_15n=0b0100 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { muls(rn16,addr16m32); }
+:muls  rn32,(addr32m32)      is op12_15n=0b0100 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { muls(rn32,addr32m32); }
+:div   rn8,(addr8m32)        is op12_15n=0b0101 & pad11n=0b0 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { div(rn8,addr8m32); }
+:div   rn16,(addr16m32)      is op12_15n=0b0101 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { div(rn16,addr16m32); }
+:div   rn32,(addr32m32)      is op12_15n=0b0101 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { div(rn32,addr32m32); }
+:divs  rn8,(addr8m32)        is op12_15n=0b0101 & pad11n=0b1 & rn8 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { divs(rn8,addr8m32); }
+:divs  rn16,(addr16m32)      is op12_15n=0b0101 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { divs(rn16,addr16m32); }
+:divs  rn32,(addr32m32)      is op12_15n=0b0101 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { divs(rn32,addr32m32); }
+:inc   bits8_10n,(addr8m32)  is op12_15n=0b0110 & pad11n=0b0 & bits8_10n & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { add(addr8m32,bits8_10n); }
+:inc   bits8_10n,(addr16m32) is op12_15n=0b0110 & pad11n=0b0 & bits8_10n & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { add(addr16m32,bits8_10n); }
+:inc   bits8_10n,(addr32m32) is op12_15n=0b0110 & pad11n=0b0 & bits8_10n & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { add(addr32m32,bits8_10n); }
+:dec   bits8_10n,(addr8m32)  is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sub(addr8m32,bits8_10n); }
+:dec   bits8_10n,(addr16m32) is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sub(addr16m32,bits8_10n); }
+:dec   bits8_10n,(addr32m32) is op12_15n=0b0110 & pad11n=0b1 & bits8_10n & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sub(addr32m32,bits8_10n); }
+:rlc   (addr8m32)            is op8_15n=0x78 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:rlcw  (addr16m32)           is op8_15n=0x78 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:rrc   (addr8m32)            is op8_15n=0x79 & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:rrcw  (addr16m32)           is op8_15n=0x79 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:rl    (addr8m32)            is op8_15n=0x7a & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:rlw   (addr16m32)           is op8_15n=0x7a & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:rr    (addr8m32)            is op8_15n=0x7b & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:rrw   (addr16m32)           is op8_15n=0x7b & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:sla   (addr8m32)            is op8_15n=0x7c & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:slaw  (addr16m32)           is op8_15n=0x7c & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:sra   (addr8m32)            is op8_15n=0x7d & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:sraw  (addr16m32)           is op8_15n=0x7d & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:sll   (addr8m32)            is op8_15n=0x7e & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:sllw  (addr16m32)           is op8_15n=0x7e & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
+:srl   (addr8m32)            is op8_15n=0x7f & op4_7m=0b1000 & pad3m=0b0 & addr8m32 {}
+:srlw  (addr16m32)           is op8_15n=0x7f & op4_7m=0b1001 & pad3m=0b0 & addr16m32 {}
 
-:add   rn8,(addr8m32)        is op12_15n=0b1000 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { add(rn8,addr8m32); } 
-:add   rn16,(addr16m32)      is op12_15n=0b1000 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { add(rn16,addr16m32); } 
-:add   rn32,(addr32m32)      is op12_15n=0b1000 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { add(rn32,addr32m32); } 
-:adc   rn8,(addr8m32)        is op12_15n=0b1001 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { adc(rn8,addr8m32); } 
-:adc   rn16,(addr16m32)      is op12_15n=0b1001 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { adc(rn16,addr16m32); } 
-:adc   rn32,(addr32m32)      is op12_15n=0b1001 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { adc(rn32,addr32m32); } 
-:sub   rn8,(addr8m32)        is op12_15n=0b1010 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sub(rn8,addr8m32); } 
-:sub   rn16,(addr16m32)      is op12_15n=0b1010 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sub(rn16,addr16m32); } 
-:sub   rn32,(addr32m32)      is op12_15n=0b1010 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sub(rn32,addr32m32); } 
-:sbc   rn8,(addr8m32)        is op12_15n=0b1011 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sbc(rn8,addr8m32); } 
-:sbc   rn16,(addr16m32)      is op12_15n=0b1011 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sbc(rn16,addr16m32); } 
-:sbc   rn32,(addr32m32)      is op12_15n=0b1011 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sbc(rn32,addr32m32); } 
-:and   rn8,(addr8m32)        is op12_15n=0b1100 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { and(rn8,(addr8m32)); } 
-:and   rn16,(addr16m32)      is op12_15n=0b1100 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { and(rn16,addr16m32); } 
-:and   rn32,(addr32m32)      is op12_15n=0b1100 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { and(rn32,addr32m32); } 
-:xor   rn8,(addr8m32)        is op12_15n=0b1101 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { xor(rn8,addr8m32); } 
-:xor   rn16,(addr16m32)      is op12_15n=0b1101 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { xor(rn16,addr16m32); } 
-:xor   rn32,(addr32m32)      is op12_15n=0b1101 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { xor(rn32,addr32m32); } 
-:or    rn8,(addr8m32)        is op12_15n=0b1110 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { or(rn8,addr8m32); } 
-:or    rn16,(addr16m32)      is op12_15n=0b1110 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { or(rn16,addr16m32); } 
-:or    rn32,(addr32m32)      is op12_15n=0b1110 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { or(rn32,addr32m32); } 
-:cp    rn8,(addr8m32)        is op12_15n=0b1111 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { cp(rn8,addr8m32); } 
-:cp    rn16,(addr16m32)      is op12_15n=0b1111 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { cp(rn16,addr16m32); } 
-:cp    rn32,(addr32m32)      is op12_15n=0b1111 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { cp(rn32,addr32m32); } 
+:add   rn8,(addr8m32)        is op12_15n=0b1000 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { add(rn8,addr8m32); }
+:add   rn16,(addr16m32)      is op12_15n=0b1000 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { add(rn16,addr16m32); }
+:add   rn32,(addr32m32)      is op12_15n=0b1000 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { add(rn32,addr32m32); }
+:adc   rn8,(addr8m32)        is op12_15n=0b1001 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { adc(rn8,addr8m32); }
+:adc   rn16,(addr16m32)      is op12_15n=0b1001 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { adc(rn16,addr16m32); }
+:adc   rn32,(addr32m32)      is op12_15n=0b1001 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { adc(rn32,addr32m32); }
+:sub   rn8,(addr8m32)        is op12_15n=0b1010 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sub(rn8,addr8m32); }
+:sub   rn16,(addr16m32)      is op12_15n=0b1010 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sub(rn16,addr16m32); }
+:sub   rn32,(addr32m32)      is op12_15n=0b1010 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sub(rn32,addr32m32); }
+:sbc   rn8,(addr8m32)        is op12_15n=0b1011 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sbc(rn8,addr8m32); }
+:sbc   rn16,(addr16m32)      is op12_15n=0b1011 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sbc(rn16,addr16m32); }
+:sbc   rn32,(addr32m32)      is op12_15n=0b1011 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sbc(rn32,addr32m32); }
+:and   rn8,(addr8m32)        is op12_15n=0b1100 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { and(rn8,(addr8m32)); }
+:and   rn16,(addr16m32)      is op12_15n=0b1100 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { and(rn16,addr16m32); }
+:and   rn32,(addr32m32)      is op12_15n=0b1100 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { and(rn32,addr32m32); }
+:xor   rn8,(addr8m32)        is op12_15n=0b1101 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { xor(rn8,addr8m32); }
+:xor   rn16,(addr16m32)      is op12_15n=0b1101 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { xor(rn16,addr16m32); }
+:xor   rn32,(addr32m32)      is op12_15n=0b1101 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { xor(rn32,addr32m32); }
+:or    rn8,(addr8m32)        is op12_15n=0b1110 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { or(rn8,addr8m32); }
+:or    rn16,(addr16m32)      is op12_15n=0b1110 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { or(rn16,addr16m32); }
+:or    rn32,(addr32m32)      is op12_15n=0b1110 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { or(rn32,addr32m32); }
+:cp    rn8,(addr8m32)        is op12_15n=0b1111 & pad11n=0b0 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { cp(rn8,addr8m32); }
+:cp    rn16,(addr16m32)      is op12_15n=0b1111 & pad11n=0b0 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { cp(rn16,addr16m32); }
+:cp    rn32,(addr32m32)      is op12_15n=0b1111 & pad11n=0b0 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { cp(rn32,addr32m32); }
 
 #### (mem),R
 
-:add   (addr8m32),rn8        is op12_15n=0b1000 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { add(addr8m32,rn8); } 
-:add   (addr16m32),rn16      is op12_15n=0b1000 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { add(addr16m32,rn16); } 
-:add   (addr32m32),rn32      is op12_15n=0b1000 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { add(addr32m32,rn32); } 
-:adc   (addr8m32),rn8        is op12_15n=0b1001 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { adc(addr8m32,rn8); } 
-:adc   (addr16m32),rn16      is op12_15n=0b1001 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { adc(addr16m32,rn16); } 
-:adc   (addr32m32),rn32      is op12_15n=0b1001 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { adc(addr32m32,rn32); } 
-:sub   (addr8m32),rn8        is op12_15n=0b1010 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sub(addr8m32,rn8); } 
-:sub   (addr16m32),rn16      is op12_15n=0b1010 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sub(addr16m32,rn16); } 
-:sub   (addr32m32),rn32      is op12_15n=0b1010 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sub(addr32m32,rn32); } 
-:sbc   (addr8m32),rn8        is op12_15n=0b1011 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sbc(addr8m32,rn8); } 
-:sbc   (addr16m32),rn16      is op12_15n=0b1011 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sbc(addr16m32,rn16); } 
-:sbc   (addr32m32),rn32      is op12_15n=0b1011 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sbc(addr32m32,rn32); } 
-:and   (addr8m32),rn8        is op12_15n=0b1100 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { and(addr8m32,rn8); } 
-:and   (addr16m32),rn16      is op12_15n=0b1100 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { and(addr16m32,rn16); } 
-:and   (addr32m32),rn32      is op12_15n=0b1100 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { and(addr32m32,rn32); } 
-:xor   (addr8m32),rn8        is op12_15n=0b1101 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { xor(addr8m32,rn8); } 
-:xor   (addr16m32),rn16      is op12_15n=0b1101 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { xor(addr16m32,rn16); } 
-:xor   (addr32m32),rn32      is op12_15n=0b1101 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { xor(addr32m32,rn32); } 
-:or    (addr8m32),rn8        is op12_15n=0b1110 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { or(addr8m32,rn8); } 
-:or    (addr16m32),rn16      is op12_15n=0b1110 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { or(addr16m32,rn16); } 
-:or    (addr32m32),rn32      is op12_15n=0b1110 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { or(addr32m32,rn32); } 
-:cp    (addr8m32),rn8        is op12_15n=0b1111 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { cp(addr8m32,rn8); } 
-:cp    (addr16m32),rn16      is op12_15n=0b1111 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { cp(addr16m32,rn16); } 
-:cp    (addr32m32),rn32      is op12_15n=0b1111 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { cp(addr32m32,rn32); } 
+:add   (addr8m32),rn8        is op12_15n=0b1000 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { add(addr8m32,rn8); }
+:add   (addr16m32),rn16      is op12_15n=0b1000 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { add(addr16m32,rn16); }
+:add   (addr32m32),rn32      is op12_15n=0b1000 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { add(addr32m32,rn32); }
+:adc   (addr8m32),rn8        is op12_15n=0b1001 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { adc(addr8m32,rn8); }
+:adc   (addr16m32),rn16      is op12_15n=0b1001 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { adc(addr16m32,rn16); }
+:adc   (addr32m32),rn32      is op12_15n=0b1001 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { adc(addr32m32,rn32); }
+:sub   (addr8m32),rn8        is op12_15n=0b1010 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sub(addr8m32,rn8); }
+:sub   (addr16m32),rn16      is op12_15n=0b1010 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sub(addr16m32,rn16); }
+:sub   (addr32m32),rn32      is op12_15n=0b1010 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sub(addr32m32,rn32); }
+:sbc   (addr8m32),rn8        is op12_15n=0b1011 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { sbc(addr8m32,rn8); }
+:sbc   (addr16m32),rn16      is op12_15n=0b1011 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { sbc(addr16m32,rn16); }
+:sbc   (addr32m32),rn32      is op12_15n=0b1011 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { sbc(addr32m32,rn32); }
+:and   (addr8m32),rn8        is op12_15n=0b1100 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { and(addr8m32,rn8); }
+:and   (addr16m32),rn16      is op12_15n=0b1100 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { and(addr16m32,rn16); }
+:and   (addr32m32),rn32      is op12_15n=0b1100 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { and(addr32m32,rn32); }
+:xor   (addr8m32),rn8        is op12_15n=0b1101 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { xor(addr8m32,rn8); }
+:xor   (addr16m32),rn16      is op12_15n=0b1101 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { xor(addr16m32,rn16); }
+:xor   (addr32m32),rn32      is op12_15n=0b1101 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { xor(addr32m32,rn32); }
+:or    (addr8m32),rn8        is op12_15n=0b1110 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { or(addr8m32,rn8); }
+:or    (addr16m32),rn16      is op12_15n=0b1110 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { or(addr16m32,rn16); }
+:or    (addr32m32),rn32      is op12_15n=0b1110 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { or(addr32m32,rn32); }
+:cp    (addr8m32),rn8        is op12_15n=0b1111 & pad11n=0b1 & rn8  & op4_7m=0b1000 & pad3m=0b0 & addr8m32 { cp(addr8m32,rn8); }
+:cp    (addr16m32),rn16      is op12_15n=0b1111 & pad11n=0b1 & rn16 & op4_7m=0b1001 & pad3m=0b0 & addr16m32 { cp(addr16m32,rn16); }
+:cp    (addr32m32),rn32      is op12_15n=0b1111 & pad11n=0b1 & rn32 & op4_7m=0b1010 & pad3m=0b0 & addr32m32 { cp(addr32m32,rn32); }
 
 @include "src_mem.sinc"
 
