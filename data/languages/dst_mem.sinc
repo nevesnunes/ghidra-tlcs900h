@@ -322,44 +322,44 @@
 
 ### dst=>(-xrr)
 
-:ld ("-"^r32b),imm8        is op0_7=0xf4 ; r32b  ; op0_7=0b0000 ; imm8 { r32b = imm8; }
-:ld ("-"^r32b),imm16       is op0_7=0xf4 ; r32b ; op0_7=0b0010 ; imm16 { r32b = imm16; }
-:pop ("-"^r32b)            is op0_7=0xf4 ; r32b  ; op0_7=0b0100 { pop16(r32b); }
-:popw ("-"^r32b)           is op0_7=0xf4 ; r32b ; op0_7=0b0110 { pop16(r32b); }
-:ld ("-"^r32b),(addr16i8)  is op0_7=0xf4 ; r32b  ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b = tmp; }
-:ld ("-"^r32b),(addr16i16) is op0_7=0xf4 ; r32b ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b = tmp; }
+:ld (r32b_pre),imm8        is op0_7=0xf4 ; r32b_pre  ; op0_7=0b0000 ; imm8 { r32b_pre = imm8; }
+:ld (r32b_pre),imm16       is op0_7=0xf4 ; r32b_pre ; op0_7=0b0010 ; imm16 { r32b_pre = imm16; }
+:pop (r32b_pre)            is op0_7=0xf4 ; r32b_pre  ; op0_7=0b0100 { pop16(r32b_pre); }
+:popw (r32b_pre)           is op0_7=0xf4 ; r32b_pre ; op0_7=0b0110 { pop16(r32b_pre); }
+:ld (r32b_pre),(addr16i8)  is op0_7=0xf4 ; r32b_pre  ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b_pre = tmp; }
+:ld (r32b_pre),(addr16i16) is op0_7=0xf4 ; r32b_pre ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b_pre = tmp; }
 
-:lda r16,"-"^r32b       is op0_7=0xf4 ; r32b ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b:2; }
-:lda r32,"-"^r32b       is op0_7=0xf4 ; r32b ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b; }
-:ld ("-"^r32b),r8       is op0_7=0xf4 ; r32b  ; op4_7=0b0100 & pad3=0b0 & r8  { r32b = zext(r8); }
-:ld ("-"^r32b),r16      is op0_7=0xf4 ; r32b ; op4_7=0b0101 & pad3=0b0 & r16 { r32b = zext(r16); }
-:ld ("-"^r32b),r32      is op0_7=0xf4 ; r32b ; op4_7=0b0110 & pad3=0b0 & r32 { r32b = r32; }
+:lda r16,r32b_pre       is op0_7=0xf4 ; r32b_pre ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b_pre:2; }
+:lda r32,r32b_pre       is op0_7=0xf4 ; r32b_pre ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b_pre; }
+:ld (r32b_pre),r8       is op0_7=0xf4 ; r32b_pre  ; op4_7=0b0100 & pad3=0b0 & r8  { r32b_pre = zext(r8); }
+:ld (r32b_pre),r16      is op0_7=0xf4 ; r32b_pre ; op4_7=0b0101 & pad3=0b0 & r16 { r32b_pre = zext(r16); }
+:ld (r32b_pre),r32      is op0_7=0xf4 ; r32b_pre ; op4_7=0b0110 & pad3=0b0 & r32 { r32b_pre = r32; }
 
-:andcf A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101000 & A {}
-:orcf  A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101001 & A {}
-:xorcf A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101010 & A {}
-:ldcf  A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101011 & A {}
-:stcf  A,("-"^r32b)     is op0_7=0xf4 ; r32b ; op0_7=0b00101100 & A {}
+:andcf A,(r32b_pre)     is op0_7=0xf4 ; r32b_pre ; op0_7=0b00101000 & A {}
+:orcf  A,(r32b_pre)     is op0_7=0xf4 ; r32b_pre ; op0_7=0b00101001 & A {}
+:xorcf A,(r32b_pre)     is op0_7=0xf4 ; r32b_pre ; op0_7=0b00101010 & A {}
+:ldcf  A,(r32b_pre)     is op0_7=0xf4 ; r32b_pre ; op0_7=0b00101011 & A {}
+:stcf  A,(r32b_pre)     is op0_7=0xf4 ; r32b_pre ; op0_7=0b00101100 & A {}
 
-:andcf bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
-:orcf  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
-:xorcf bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
-:ldcf  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
-:stcf  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
-:tset  bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
-:res   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
-:set   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
-:chg   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
-:bit   bits0_2,("-"^r32b) is op0_7=0xf4 ; r32b ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+:andcf bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(r32b_pre) is op0_7=0xf4 ; r32b_pre ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
 
-:jp cc,"-"^r32b   is op0_7=0xf4 ; r32b ; op4_7=0b1101 & cc & flags { if (cc) goto r32b; }
-:call cc,"-"^r32b is op0_7=0xf4 ; r32b ; op4_7=0b1110 & cc & flags {
+:jp cc,r32b_pre   is op0_7=0xf4 ; r32b_pre ; op4_7=0b1101 & cc & flags { if (cc) goto r32b_pre; }
+:call cc,r32b_pre is op0_7=0xf4 ; r32b_pre ; op4_7=0b1110 & cc & flags {
     if (!cc) goto <done>;
     push32(&:4 inst_next);
-    call r32b;
+    call r32b_pre;
 <done>
 }
-:ret cc,"-"^r32b  is op0_7=0xf4 ; r32b ; op4_7=0b1111 & cc & flags {
+:ret cc,r32b_pre  is op0_7=0xf4 ; r32b_pre ; op4_7=0b1111 & cc & flags {
     if (!cc) goto <done>;
     pop32(PC);
     return [PC];
@@ -368,44 +368,44 @@
 
 ### dst=>(xrr+)
 
-:ld (r32b^"+"),imm8        is op0_7=0xf5 ; r32b ; op0_7=0b0000 ; imm8 { r32b = imm8; }
-:ld (r32b^"+"),imm16       is op0_7=0xf5 ; r32b ; op0_7=0b0010 ; imm16 { r32b = imm16; }
-:pop (r32b^"+")            is op0_7=0xf5 ; r32b ; op0_7=0b0100 { pop16(r32b); }
-:popw (r32b^"+")           is op0_7=0xf5 ; r32b ; op0_7=0b0110 { pop16(r32b); }
-:ld (r32b^"+"),(addr16i8)  is op0_7=0xf5 ; r32b ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b = tmp; }
-:ld (r32b^"+"),(addr16i16) is op0_7=0xf5 ; r32b ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b = tmp; }
+:ld (r32b_pos),imm8        is op0_7=0xf5 ; r32b_pos ; op0_7=0b0000 ; imm8 { r32b_pos = imm8; }
+:ld (r32b_pos),imm16       is op0_7=0xf5 ; r32b_pos ; op0_7=0b0010 ; imm16 { r32b_pos = imm16; }
+:pop (r32b_pos)            is op0_7=0xf5 ; r32b_pos ; op0_7=0b0100 { pop16(r32b_pos); }
+:popw (r32b_pos)           is op0_7=0xf5 ; r32b_pos ; op0_7=0b0110 { pop16(r32b_pos); }
+:ld (r32b_pos),(addr16i8)  is op0_7=0xf5 ; r32b_pos ; op0_7=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b_pos = tmp; }
+:ld (r32b_pos),(addr16i16) is op0_7=0xf5 ; r32b_pos ; op0_7=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b_pos = tmp; }
 
-:lda r16,r32b^"+"       is op0_7=0xf5 ; r32b ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b:2; }
-:lda r32,r32b^"+"       is op0_7=0xf5 ; r32b ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b; }
-:ld (r32b^"+"),r8       is op0_7=0xf5 ; r32b ; op4_7=0b0100 & pad3=0b0 & r8  { r32b = zext(r8); }
-:ld (r32b^"+"),r16      is op0_7=0xf5 ; r32b ; op4_7=0b0101 & pad3=0b0 & r16 { r32b = zext(r16); }
-:ld (r32b^"+"),r32      is op0_7=0xf5 ; r32b ; op4_7=0b0110 & pad3=0b0 & r32 { r32b = r32; }
+:lda r16,r32b_pos       is op0_7=0xf5 ; r32b_pos ; op4_7=0b0010 & pad3=0b0 & r16 { r16 = r32b_pos:2; }
+:lda r32,r32b_pos       is op0_7=0xf5 ; r32b_pos ; op4_7=0b0011 & pad3=0b0 & r32 { r32 = r32b_pos; }
+:ld (r32b_pos),r8       is op0_7=0xf5 ; r32b_pos ; op4_7=0b0100 & pad3=0b0 & r8  { r32b_pos = zext(r8); }
+:ld (r32b_pos),r16      is op0_7=0xf5 ; r32b_pos ; op4_7=0b0101 & pad3=0b0 & r16 { r32b_pos = zext(r16); }
+:ld (r32b_pos),r32      is op0_7=0xf5 ; r32b_pos ; op4_7=0b0110 & pad3=0b0 & r32 { r32b_pos = r32; }
 
-:andcf A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101000 & A {}
-:orcf  A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101001 & A {}
-:xorcf A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101010 & A {}
-:ldcf  A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101011 & A {}
-:stcf  A,(r32b^"+")     is op0_7=0xf5 ; r32b ; op0_7=0b00101100 & A {}
+:andcf A,(r32b_pos)     is op0_7=0xf5 ; r32b_pos ; op0_7=0b00101000 & A {}
+:orcf  A,(r32b_pos)     is op0_7=0xf5 ; r32b_pos ; op0_7=0b00101001 & A {}
+:xorcf A,(r32b_pos)     is op0_7=0xf5 ; r32b_pos ; op0_7=0b00101010 & A {}
+:ldcf  A,(r32b_pos)     is op0_7=0xf5 ; r32b_pos ; op0_7=0b00101011 & A {}
+:stcf  A,(r32b_pos)     is op0_7=0xf5 ; r32b_pos ; op0_7=0b00101100 & A {}
 
-:andcf bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
-:orcf  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
-:xorcf bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
-:ldcf  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
-:stcf  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
-:tset  bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
-:res   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
-:set   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
-:chg   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
-:bit   bits0_2,(r32b^"+") is op0_7=0xf5 ; r32b ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
+:andcf bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1000 & pad3=0b0 & bits0_2 {}
+:orcf  bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1000 & pad3=0b1 & bits0_2 {}
+:xorcf bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1001 & pad3=0b0 & bits0_2 {}
+:ldcf  bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1001 & pad3=0b1 & bits0_2 {}
+:stcf  bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1010 & pad3=0b0 & bits0_2 {}
+:tset  bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1010 & pad3=0b1 & bits0_2 {}
+:res   bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1011 & pad3=0b0 & bits0_2 {}
+:set   bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1011 & pad3=0b1 & bits0_2 {}
+:chg   bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1100 & pad3=0b0 & bits0_2 {}
+:bit   bits0_2,(r32b_pos) is op0_7=0xf5 ; r32b_pos ; op4_7=0b1100 & pad3=0b1 & bits0_2 {}
 
-:jp cc,r32b^"+"   is op0_7=0xf5 ; r32b ; op4_7=0b1101 & cc & flags { if (cc) goto r32b; }
-:call cc,r32b^"+" is op0_7=0xf5 ; r32b ; op4_7=0b1110 & cc & flags {
+:jp cc,r32b_pos   is op0_7=0xf5 ; r32b_pos ; op4_7=0b1101 & cc & flags { if (cc) goto r32b_pos; }
+:call cc,r32b_pos is op0_7=0xf5 ; r32b_pos ; op4_7=0b1110 & cc & flags {
     if (!cc) goto <done>;
     push32(&:4 inst_next);
-    call r32b;
+    call r32b_pos;
 <done>
 }
-:ret cc,r32b^"+"  is op0_7=0xf5 ; r32b ; op4_7=0b1111 & cc & flags {
+:ret cc,r32b_pos  is op0_7=0xf5 ; r32b_pos ; op4_7=0b1111 & cc & flags {
     if (!cc) goto <done>;
     pop32(PC);
     return [PC];

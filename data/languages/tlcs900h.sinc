@@ -7,9 +7,14 @@ define pcodeop enable_interrupt;
 define pcodeop software_interrupt;
 
 define token op8 (8)
+   op0_7 = (0,7)
    op4_7 = (4,7)
    op0_3 = (0,3)
-   op0_7 = (0,7)
+   op1_1 = (1,1)
+   op0_0 = (0,0)
+   op4_5 = (4,5)
+   op6_6 = (6,6)
+   op7_7 = (7,7)
    flags = (0,3)
    interrupts = (0,3)
    r8 = (0,2)
@@ -319,57 +324,48 @@ addr32r32: r32 is r32 { export *:4 r32; }
 r32b_d00: r32b_bits2_7     is r32b_bits2_7 & r32b_bits0_1=0b00 { export r32b_bits2_7; }
 r32b_pre: "-"^r32b_bits2_7 is r32b_bits2_7 & r32b_bits0_1 { r32b_bits2_7 = r32b_bits2_7 - (r32b_bits0_1 << 1); export r32b_bits2_7; }
 r32b_pos: r32b_bits2_7^"+" is r32b_bits2_7 & r32b_bits0_1 { tmp = r32b_bits2_7; r32b_bits2_7 = r32b_bits2_7 + (r32b_bits0_1 << 1); export tmp; }
+
 r32b_d16: r32b_bits2_7^"+"^imm16 is r32b_bits2_7 & r32b_bits0_1=0b01 ; imm16 { tmp:4 = *:4 (r32b_bits2_7+imm16); export tmp; }
 r32b_drb: r32b32^"+"^r32b8       is op0_7=0b011 ; r32b32 ; r32b8  { tmp:4 = *:4 (r32b32+zext(r32b8)); export tmp; }
 r32b_drb: r32b32^"+"^r32b16      is op0_7=0b111 ; r32b32 ; r32b16 { tmp:4 = *:4 (r32b32+zext(r32b16)); export tmp; }
-
-#r32b_d00: r32b_bits2_7     is op4_7=0b0011 ; r32b_bits2_7 & r32b_bits0_1=0b00 { export r32b_bits2_7; }
-#r32b_pre: "-"^r32b_bits2_7 is op4_7=0b0100 ; r32b_bits2_7 & r32b_bits0_1 { r32b_bits2_7 = r32b_bits2_7 - (r32b_bits0_1 << 1); export r32b_bits2_7; }
-#r32b_pos: r32b_bits2_7^"+" is op4_7=0b0100 ; r32b_bits2_7 & r32b_bits0_1 { tmp = r32b_bits2_7; r32b_bits2_7 = r32b_bits2_7 + (r32b_bits0_1 << 1); export tmp; }
-#r32b_d16: r32b_bits2_7^"+"^imm16 is r32b_bits2_7 & r32b_bits0_1=0b01 ; imm16 { tmp:4 = *:4 (r32b_bits2_7+imm16); export tmp; }
-#r32b_drb: r32b32^"+"^r32b8       is op0_7=0b011 ; r32b32 ; r32b8  { tmp:4 = *:4 (r32b32+zext(r32b8)); export tmp; }
-#r32b_drb: r32b32^"+"^r32b16      is op0_7=0b111 ; r32b32 ; r32b16 { tmp:4 = *:4 (r32b32+zext(r32b16)); export tmp; }
-#r32b: r32b_d00 is r32b_d00 { export r32b_d00; }
-#r32b: r32b_pre is r32b_pre { export r32b_pre; }
-#r32b: r32b_pos is r32b_pos { export r32b_pos; }
 
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
 rel16: reloc is simm16 [ reloc=((inst_next >> 16) << 16) | ((inst_next + simm16) & 0xFFFF); ] { export *[ram]:4 reloc; }
 rel32: reloc is simm32 [ reloc=inst_next+simm32; ] { export *[ram]:4 reloc; }
 
-cc: "F"   is flags=0x0 { c:1 = 1; export c; }
-cc: "LT"  is flags=0x1 { c:1 = 1; export c; }
-cc: "LE"  is flags=0x2 { c:1 = 1; export c; }
-cc: "ULE" is flags=0x3 { c:1 = 1; export c; }
-cc: "PE"  is flags=0x4 { c:1 = $(PV_flag); export c; }
-cc: "M"   is flags=0x5 { c:1 = $(S_flag); export c; }
-cc: "Z"   is flags=0x6 { c:1 = $(Z_flag); export c; }
-cc: "C"   is flags=0x7 { c:1 = $(C_flag); export c; }
-cc: "T"   is flags=0x8 { c:1 = 1; export c; }
-cc: "GE"  is flags=0x9 { c:1 = 1; export c; }
-cc: "GT"  is flags=0xa { c:1 = 1; export c; }
-cc: "UGT" is flags=0xb { c:1 = 1; export c; }
-cc: "PO"  is flags=0xc { c:1 = ($(PV_flag) == 0); export c; }
-cc: "P"   is flags=0xd { c:1 = ($(S_flag) == 0); export c; }
-cc: "NZ"  is flags=0xe { c:1 = ($(Z_flag) == 0); export c; }
-cc: "NC"  is flags=0xf { c:1 = ($(C_flag) == 0); export c; }
+cc: "F"      is flags=0x0 { c:1 = 1; export c; }
+cc: "LT"     is flags=0x1 { c:1 = 1; export c; }
+cc: "LE"     is flags=0x2 { c:1 = 1; export c; }
+cc: "ULE"    is flags=0x3 { c:1 = 1; export c; }
+cc: "PE/OV"  is flags=0x4 { c:1 = $(PV_flag); export c; }
+cc: "M/MI"   is flags=0x5 { c:1 = $(S_flag); export c; }
+cc: "Z"      is flags=0x6 { c:1 = $(Z_flag); export c; }
+cc: "C"      is flags=0x7 { c:1 = $(C_flag); export c; }
+cc: "T"      is flags=0x8 { c:1 = 1; export c; }
+cc: "GE"     is flags=0x9 { c:1 = 1; export c; }
+cc: "GT"     is flags=0xa { c:1 = 1; export c; }
+cc: "UGT"    is flags=0xb { c:1 = 1; export c; }
+cc: "PO/NOV" is flags=0xc { c:1 = ($(PV_flag) == 0); export c; }
+cc: "P/PL"   is flags=0xd { c:1 = ($(S_flag) == 0); export c; }
+cc: "NZ"     is flags=0xe { c:1 = ($(Z_flag) == 0); export c; }
+cc: "NC"     is flags=0xf { c:1 = ($(C_flag) == 0); export c; }
 
-cc16: "F"   is flags16=0x0 { c:1 = 1; export c; }
-cc16: "LT"  is flags16=0x1 { c:1 = 1; export c; }
-cc16: "LE"  is flags16=0x2 { c:1 = 1; export c; }
-cc16: "ULE" is flags16=0x3 { c:1 = 1; export c; }
-cc16: "PE"  is flags16=0x4 { c:1 = $(PV_flag); export c; }
-cc16: "M"   is flags16=0x5 { c:1 = $(S_flag); export c; }
-cc16: "Z"   is flags16=0x6 { c:1 = $(Z_flag); export c; }
-cc16: "C"   is flags16=0x7 { c:1 = $(C_flag); export c; }
-cc16: "T"   is flags16=0x8 { c:1 = 1; export c; }
-cc16: "GE"  is flags16=0x9 { c:1 = 1; export c; }
-cc16: "GT"  is flags16=0xa { c:1 = 1; export c; }
-cc16: "UGT" is flags16=0xb { c:1 = 1; export c; }
-cc16: "PO"  is flags16=0xc { c:1 = ($(PV_flag) == 0); export c; }
-cc16: "P"   is flags16=0xd { c:1 = ($(S_flag) == 0); export c; }
-cc16: "NZ"  is flags16=0xe { c:1 = ($(Z_flag) == 0); export c; }
-cc16: "NC"  is flags16=0xf { c:1 = ($(C_flag) == 0); export c; }
+cc16: "F"      is flags16=0x0 { c:1 = 1; export c; }
+cc16: "LT"     is flags16=0x1 { c:1 = 1; export c; }
+cc16: "LE"     is flags16=0x2 { c:1 = 1; export c; }
+cc16: "ULE"    is flags16=0x3 { c:1 = 1; export c; }
+cc16: "PE/OV"  is flags16=0x4 { c:1 = $(PV_flag); export c; }
+cc16: "M/MI"   is flags16=0x5 { c:1 = $(S_flag); export c; }
+cc16: "Z"      is flags16=0x6 { c:1 = $(Z_flag); export c; }
+cc16: "C"      is flags16=0x7 { c:1 = $(C_flag); export c; }
+cc16: "T"      is flags16=0x8 { c:1 = 1; export c; }
+cc16: "GE"     is flags16=0x9 { c:1 = 1; export c; }
+cc16: "GT"     is flags16=0xa { c:1 = 1; export c; }
+cc16: "UGT"    is flags16=0xb { c:1 = 1; export c; }
+cc16: "PO/NOV" is flags16=0xc { c:1 = ($(PV_flag) == 0); export c; }
+cc16: "P/PL"   is flags16=0xd { c:1 = ($(S_flag) == 0); export c; }
+cc16: "NZ"     is flags16=0xe { c:1 = ($(Z_flag) == 0); export c; }
+cc16: "NC"     is flags16=0xf { c:1 = ($(C_flag) == 0); export c; }
 
 swi_n: "0" is interrupts=0x8 { c:1 = 0; export c; }
 swi_n: "1" is interrupts=0x9 { c:1 = 1; export c; }
@@ -868,7 +864,7 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
     push32(&:4 inst_next);
     call addr32m32;
 }
-:ret cc is op0_7=0xb0 ; op4_7=0b1111 & pad3=0b1 & cc & flags {
+:ret cc is op0_7=0xb0 ; op4_7=0b1111 & cc & flags {
     if (!cc) goto inst_next;
     pop32(PC);
     return [PC];
