@@ -41,8 +41,16 @@
 :paa r32b32        is op0_7=0xe7 ; r32b32 ; op0_7=0x14 {}
 :mirr r32b16       is op0_7=0xd7 ; r32b16 ; op0_7=0x16 {}
 :mula r32b16       is op0_7=0xd7 ; r32b16 ; op0_7=0x19 {}
-:djnz r32b8,imm8   is op0_7=0xc7 ; r32b8  ; op0_7=0x1c ; imm8 {}
-:djnz r32b16,imm8  is op0_7=0xd7 ; r32b16 ; op0_7=0x1c ; imm8 {}
+:djnz r32b8,rel8   is op0_7=0xc7 ; r32b8  ; op0_7=0x1c ; rel8 {
+    sub(r32b8,1);
+    if ($(Z_flag)) goto inst_next;
+    goto rel8;
+}
+:djnz r32b16,rel8  is op0_7=0xd7 ; r32b16 ; op0_7=0x1c ; rel8 {
+    sub(r32b16,1);
+    if ($(Z_flag)) goto inst_next;
+    goto rel8;
+}
 
 :andcf imm8,r32b8  is op0_7=0xc7 ; r32b8  ; op0_7=0x20 ; imm8 {}
 :andcf imm8,r32b16 is op0_7=0xd7 ; r32b16 ; op0_7=0x20 ; imm8 {}

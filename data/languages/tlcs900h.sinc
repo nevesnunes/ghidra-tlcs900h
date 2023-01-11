@@ -426,7 +426,7 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
 :jp addr16   is op0_7=0x1a; addr16 { goto addr16; }
 :jp addr24   is op0_7=0x1b; addr24 { goto addr24; }
 :call addr16 is op0_7=0x1c; addr16 {
-    push16(&:2 inst_next);
+    push32(&:4 inst_next);
     call addr16;
 }
 :call addr24 is op0_7=0x1d; addr24 {
@@ -434,7 +434,7 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
     call addr24;
 }
 :calr rel16 is op0_7=0x1e; rel16 {
-    push16(&:2 inst_next);
+    push32(&:4 inst_next);
     call rel16;
 }
 
@@ -495,8 +495,16 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
 :paa rm32        is op8_15n=0x14 & op4_7m=0b1110 & pad3m=0b1 & rm32 {}
 :mirr rm16       is op8_15n=0x16 & op4_7m=0b1101 & pad3m=0b1 & rm16 {}
 :mula rm16       is op8_15n=0x19 & op4_7m=0b1101 & pad3m=0b1 & rm16 {}
-:djnz rm8,imm8   is op8_15n=0x1c & op4_7m=0b1100 & pad3m=0b1 & rm8 ; imm8 {}
-:djnz rm16,imm8  is op8_15n=0x1c & op4_7m=0b1101 & pad3m=0b1 & rm16 ; imm8 {}
+:djnz rm8,rel8   is op8_15n=0x1c & op4_7m=0b1100 & pad3m=0b1 & rm8 ; rel8 {
+    sub(rm8,1);
+    if ($(Z_flag)) goto inst_next;
+    goto rel8;
+}
+:djnz rm16,rel8  is op8_15n=0x1c & op4_7m=0b1101 & pad3m=0b1 & rm16 ; rel8 {
+    sub(rm16,1);
+    if ($(Z_flag)) goto inst_next;
+    goto rel8;
+}
 
 :andcf imm8,rm8  is op8_15n=0x20 & op4_7m=0b1100 & pad3m=0b1 & rm8 ; imm8 {}
 :andcf imm8,rm16 is op8_15n=0x20 & op4_7m=0b1101 & pad3m=0b1 & rm16 ; imm8 {}
