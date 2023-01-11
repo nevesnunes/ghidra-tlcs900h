@@ -430,7 +430,7 @@ swi_n: "7" is interrupts=0xf { c:1 = 7; export c; }
     call addr16;
 }
 :call addr24 is op0_7=0x1d; addr24 {
-    push32(&:2 inst_next);
+    push32(&:4 inst_next);
     call addr24;
 }
 :calr rel16 is op0_7=0x1e; rel16 {
