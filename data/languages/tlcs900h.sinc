@@ -16,6 +16,7 @@ define token ins8 (8)
    op_04_05 = (4,5)
    op_04_07 = (4,7)
    op_06_06 = (6,6)
+   op_06_07 = (6,7)
    op_07_07 = (7,7)
 
    r8 = (0,2)
@@ -25,6 +26,9 @@ define token ins8 (8)
    r32b16_00_07 = (0,7)
    r32b32_00_07 = (0,7)
    r32b32_02_07 = (2,7)
+   r8c_00_07 = (0,5)
+   r16c_00_07 = (0,5)
+   r32c_00_07 = (0,5)
 
    bits_00_02 = (0,2)
    flags_00_03 = (0,3)
@@ -164,6 +168,62 @@ attach variables [ r32b32_02_07 ] [
     XWA_P XBC_P XDE_P XHL_P
     XWA   XBC   XDE   XHL
     XIX   XIY   XIZ   XSP
+];
+
+# Control registers
+attach variables [ r32c_00_07 ] [
+    DMAS0 _ _ _
+    DMAS1 _ _ _
+    DMAS2 _ _ _
+    DMAS3 _ _ _
+    DMAD0 _ _ _
+    DMAD1 _ _ _
+    DMAD2 _ _ _
+    DMAD3 _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    XNSP  _ _ _
+];
+attach variables [ r16c_00_07 ] [
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    DMAC0 _ _ _
+    DMAC1 _ _ _
+    DMAC2 _ _ _
+    DMAC3 _ _ _
+    _     _ _ _
+    _     _ _ _
+    _     _ _ _
+    NSP   _ _ _
+];
+attach variables [ r8c_00_07 ] [
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ DMAM0 _
+    _ _ DMAM1 _
+    _ _ DMAM2 _
+    _ _ DMAM3 _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
+    _ _ _     _
 ];
 
 # Macros
@@ -532,12 +592,12 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :stcf A,w_rm16_00_02  is w_op_08_15=0x2c & A & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
 :stcf A,w_rm8_00_02   is w_op_08_15=0x2c & A & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 {}
 
-:ldc "CR"[imm8],w_rm8_00_02  is w_op_08_15=0x2e & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 ; imm8 {}
-:ldc "CR"[imm8],w_rm16_00_02 is w_op_08_15=0x2e & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm8 {}
-:ldc "CR"[imm8],w_rm32_00_02 is w_op_08_15=0x2e & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm8 {}
-:ldc w_rm8_00_02,"CR"[imm8]  is w_op_08_15=0x2f & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 ; imm8 {}
-:ldc w_rm16_00_02,"CR"[imm8] is w_op_08_15=0x2f & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm8 {}
-:ldc w_rm32_00_02,"CR"[imm8] is w_op_08_15=0x2f & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm8 {}
+:ldc r8c_00_07,w_rm8_00_02   is w_op_08_15=0x2e & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; r8c_00_07  & op_06_07=0b00 { r8c_00_07 = w_rm8_00_02;   }
+:ldc r16c_00_07,w_rm16_00_02 is w_op_08_15=0x2e & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; r16c_00_07 & op_06_07=0b00 { r16c_00_07 = w_rm16_00_02; }
+:ldc r32c_00_07,w_rm32_00_02 is w_op_08_15=0x2e & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; r32c_00_07 & op_06_07=0b00 { r32c_00_07 = w_rm32_00_02; }
+:ldc w_rm8_00_02,r8c_00_07   is w_op_08_15=0x2f & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; r8c_00_07  & op_06_07=0b00 { w_rm8_00_02 = r8c_00_07;   }
+:ldc w_rm16_00_02,r16c_00_07 is w_op_08_15=0x2f & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; r16c_00_07 & op_06_07=0b00 { w_rm16_00_02 = r16c_00_07; }
+:ldc w_rm32_00_02,r32c_00_07 is w_op_08_15=0x2f & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; r32c_00_07 & op_06_07=0b00 { w_rm32_00_02 = r32c_00_07; }
 
 :res  imm8,w_rm8_00_02  is w_op_08_15=0x30 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 ; imm8 {}
 :res  imm8,w_rm16_00_02 is w_op_08_15=0x30 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm8 {}
