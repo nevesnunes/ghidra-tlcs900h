@@ -38,6 +38,8 @@ define token ins8 (8)
 
 define token ins16 (16)
    w_op_00_07 = (0,7)
+   w_op_00_01 = (0,1)
+   w_op_02 = (2,2)
    w_op_03 = (3,3)
    w_op_04_07 = (4,7)
    w_op_08_15 = (8,15)
@@ -233,7 +235,6 @@ macro setResultFlags(result) {
     $(S_flag) = (result s< 0);
     $(Z_flag) = (result == 0);
 }
-
 macro setAddCarryFlags(op1,op2) {
     $(C_flag) = (carry(op1,zext($(C_flag))) || carry(op2,op1 + zext($(C_flag))));
 }
@@ -854,23 +855,23 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 
 ### src=>(r32)
 
-:ldi   [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x10 & w_op_00_07=0x83 { ld_rep(XDE, XHL,  1, 1); }
-:ldir  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_00_07=0x83 { ld_rep(XDE, XHL,  1, 0); }
-:ldd   [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_00_07=0x83 { ld_rep(XDE, XHL, -1, 1); }
-:lddr  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_00_07=0x83 { ld_rep(XDE, XHL, -1, 0); }
-:ldiw  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x10 & w_op_00_07=0x93 { ld_rep(XDE, XHL,  1, 1); }
-:ldirw [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_00_07=0x93 { ld_rep(XDE, XHL,  1, 0); }
-:lddw  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_00_07=0x93 { ld_rep(XDE, XHL, -1, 1); }
-:lddrw [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_00_07=0x93 { ld_rep(XDE, XHL, -1, 0); }
+:ldi   [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x10 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL,  1, 1); }
+:ldir  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL,  1, 0); }
+:ldd   [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL, -1, 1); }
+:lddr  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL, -1, 0); }
+:ldiw  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x10 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL,  1, 1); }
+:ldirw [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL,  1, 0); }
+:lddw  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL, -1, 1); }
+:lddrw [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b0 & w_op_00_01 { ld_rep(XDE, XHL, -1, 0); }
 
-:ldi   (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_00_07=0x85 { ld_rep(XIX, XIY,  1, 1); }
-:ldir  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_00_07=0x85 { ld_rep(XIX, XIY,  1, 0); }
-:ldd   ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_00_07=0x85 { ld_rep(XIX, XIY, -1, 1); }
-:lddr  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_00_07=0x85 { ld_rep(XIX, XIY, -1, 0); }
-:ldiw  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_00_07=0x95 { ld_rep(XIX, XIY,  1, 1); }
-:ldirw (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_00_07=0x95 { ld_rep(XIX, XIY,  1, 0); }
-:lddw  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_00_07=0x95 { ld_rep(XIX, XIY, -1, 1); }
-:lddrw ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_00_07=0x95 { ld_rep(XIX, XIY, -1, 0); }
+:ldi   (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY,  1, 1); }
+:ldir  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY,  1, 0); }
+:ldd   ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY, -1, 1); }
+:lddr  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY, -1, 0); }
+:ldiw  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY,  1, 1); }
+:ldirw (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY,  1, 0); }
+:lddw  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY, -1, 1); }
+:lddrw ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY, -1, 0); }
 
 :cpi  is w_op_08_15=0x14 & w_op_04_07=0b1000 & w_op_03=0b0 & w_rm8_00_02 {}
 :cpir is w_op_08_15=0x15 & w_op_04_07=0b1000 & w_op_03=0b0 & w_rm8_00_02 {}
