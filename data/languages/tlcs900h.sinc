@@ -23,15 +23,15 @@ define token ins8 (8)
    r8 = (0,2)
    r16 = (0,2)
    r32 = (0,2)
-   r32b8_00_07 = (0,7)
-   r32b16_00_07 = (0,7)
-   r32b32_00_07 = (0,7)
-   r32b32_02_07 = (2,7)
+   r8b_00_07 = (0,7)
+   r16b_00_07 = (0,7)
+   r32b_00_07 = (0,7)
+   r32b_02_07 = (2,7)
    r8c_00_07 = (0,5)
    r16c_00_07 = (0,5)
    r32c_00_07 = (0,5)
 
-   bits_00_02 = (0,2) dec
+   imm3_00_02 = (0,2)
    flags_00_03 = (0,3)
    intrs_00_03 = (0,3)
 ;
@@ -51,8 +51,8 @@ define token ins16 (16)
    w_rn32_08_10 = (8,10)
    w_rn8_08_10 = (8,10)
 
-   w_bits_00_02 = (0,2) dec
-   w_bits_08_10 = (8,10) dec
+   w_imm3_00_02 = (0,2)
+   w_imm3_08_10 = (8,10)
    w_flags_08_11 = (8,11)
    w_imm8_08_15 = (8,15)
 ;
@@ -97,7 +97,7 @@ attach variables [ r16 w_rm16_00_02 w_rn16_08_10 ] [ WA BC DE HL IX IY IZ SP ];
 attach variables [ r8  w_rm8_00_02  w_rn8_08_10  ] [ W A B C D E H L ];
 
 # Banked registers
-attach variables [ r32b8_00_07 ] [
+attach variables [ r8b_00_07 ] [
     RA_0 RW_0 QA_0 QW_0 RC_0 RB_0 QC_0 QB_0 RE_0 RD_0 QE_0 QD_0 RL_0 RH_0 QL_0 QH_0
     RA_1 RW_1 QA_1 QW_1 RC_1 RB_1 QC_1 QB_1 RE_1 RD_1 QE_1 QD_1 RL_1 RH_1 QL_1 QH_1
     RA_2 RW_2 QA_2 QW_2 RC_2 RB_2 QC_2 QB_2 RE_2 RD_2 QE_2 QD_2 RL_2 RH_2 QL_2 QH_2
@@ -115,7 +115,7 @@ attach variables [ r32b8_00_07 ] [
     A    W    QA   QW   C    B    QC   QB   E    D    QE   QD   L    H    QL   QH
     IXL  IXH  QIXL QIXH IYL  IYH  QIYL QIYH IZL  IZH  QIZL QIZH SPL  SPH  QSPL QSPH
 ];
-attach variables [ r32b16_00_07 ] [
+attach variables [ r16b_00_07 ] [
     RWA_0 RWA_0 QWA_0 QWA_0 RBC_0 RBC_0 QBC_0 QBC_0 RDE_0 RDE_0 QDE_0 QDE_0 RHL_0 RHL_0 QHL_0 QHL_0
     RWA_1 RWA_1 QWA_1 QWA_1 RBC_1 RBC_1 QBC_1 QBC_1 RDE_1 RDE_1 QDE_1 QDE_1 RHL_1 RHL_1 QHL_1 QHL_1
     RWA_2 RWA_2 QWA_2 QWA_2 RBC_2 RBC_2 QBC_2 QBC_2 RDE_2 RDE_2 QDE_2 QDE_2 RHL_2 RHL_2 QHL_2 QHL_2
@@ -133,7 +133,7 @@ attach variables [ r32b16_00_07 ] [
     WA    WA    QWA   QWA   BC    BC    QBC   QBC   DE    DE    QDE   QDE   HL    HL    QHL   QHL
     IX    IX    QIX   QIX   IY    IY    QIY   QIY   IZ    IZ    QIZ   QIZ   SP    SP    QSP   QSP
 ];
-attach variables [ r32b32_00_07 ] [
+attach variables [ r32b_00_07 ] [
     XWA_0 XWA_0 XWA_0 XWA_0 XBC_0 XBC_0 XBC_0 XBC_0 XDE_0 XDE_0 XDE_0 XDE_0 XHL_0 XHL_0 XHL_0 XHL_0
     XWA_1 XWA_1 XWA_1 XWA_1 XBC_1 XBC_1 XBC_1 XBC_1 XDE_1 XDE_1 XDE_1 XDE_1 XHL_1 XHL_1 XHL_1 XHL_1
     XWA_2 XWA_2 XWA_2 XWA_2 XBC_2 XBC_2 XBC_2 XBC_2 XDE_2 XDE_2 XDE_2 XDE_2 XHL_2 XHL_2 XHL_2 XHL_2
@@ -152,7 +152,7 @@ attach variables [ r32b32_00_07 ] [
     XIX   XIX   XIX   XIX   XIY   XIY   XIY   XIY   XIZ   XIZ   XIZ   XIZ   XSP   XSP   XSP   XSP
 ];
 # Banked register encoded in 6-bits, see "Appendix A: Memory addressing mode specify code"
-attach variables [ r32b32_02_07 ] [
+attach variables [ r32b_02_07 ] [
     XWA_0 XBC_0 XDE_0 XHL_0
     XWA_1 XBC_1 XDE_1 XHL_1
     XWA_2 XBC_2 XDE_2 XHL_2
@@ -386,13 +386,13 @@ addr8r32:  r32 is r32 { export *:1 r32; }
 addr16r32: r32 is r32 { export *:2 r32; }
 addr32r32: r32 is r32 { export *:4 r32; }
 
-r32b_d00: r32b32_02_07     is r32b32_02_07 & op_00_01=0b00 { export r32b32_02_07; }
-r32b_pre: "-"^r32b32_02_07 is r32b32_02_07 & op_00_01 { r32b32_02_07 = r32b32_02_07 - (op_00_01 << 1); export r32b32_02_07; }
-r32b_pos: r32b32_02_07^"+" is r32b32_02_07 & op_00_01 { tmp = r32b32_02_07; r32b32_02_07 = r32b32_02_07 + (op_00_01 << 1); export tmp; }
+r32b_d00: r32b_02_07     is r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
+r32b_pre: "-"^r32b_02_07 is r32b_02_07 & op_00_01 { r32b_02_07 = r32b_02_07 - (op_00_01 << 1); export r32b_02_07; }
+r32b_pos: r32b_02_07^"+" is r32b_02_07 & op_00_01 { tmp = r32b_02_07; r32b_02_07 = r32b_02_07 + (op_00_01 << 1); export tmp; }
 
-r32b_d16: r32b32_02_07^"+"^imm16        is r32b32_02_07 & op_00_01=0b01 ; imm16 { tmp:4 = *:4 (r32b32_02_07+imm16); export tmp; }
-r32b_drb: r32b32_00_07^"+"^r32b8_00_07  is op_00_07=0b011 ; r32b32_00_07 ; r32b8_00_07  { tmp:4 = *:4 (r32b32_00_07+zext(r32b8_00_07)); export tmp; }
-r32b_drb: r32b32_00_07^"+"^r32b16_00_07 is op_00_07=0b111 ; r32b32_00_07 ; r32b16_00_07 { tmp:4 = *:4 (r32b32_00_07+zext(r32b16_00_07)); export tmp; }
+r32b_d16: r32b_02_07^"+"^imm16      is r32b_02_07 & op_00_01=0b01 ; imm16 { tmp:4 = *:4 (r32b_02_07+imm16); export tmp; }
+r32b_drb: r32b_00_07^"+"^r8b_00_07  is op_00_07=0b011 ; r32b_00_07 ; r8b_00_07  { tmp:4 = *:4 (r32b_00_07+zext(r8b_00_07)); export tmp; }
+r32b_drb: r32b_00_07^"+"^r16b_00_07 is op_00_07=0b111 ; r32b_00_07 ; r16b_00_07 { tmp:4 = *:4 (r32b_00_07+zext(r16b_00_07)); export tmp; }
 
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
 rel16: reloc is simm16 [ reloc=((inst_next >> 16) << 16) | ((inst_next + simm16) & 0xFFFF); ] { export *[ram]:4 reloc; }
@@ -630,12 +630,12 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :divs w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { divs(w_rn8_08_10,w_rm8_00_02); }
 :divs w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { divs(w_rn16_08_10,w_rm16_00_02); }
 :divs w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { divs(w_rn32_08_10,w_rm32_00_02); }
-:inc  w_bits_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b0 & w_bits_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { add(w_rm8_00_02,w_bits_08_10); }
-:inc  w_bits_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_bits_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { add(w_rm16_00_02,w_bits_08_10); }
-:inc  w_bits_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_bits_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { add(w_rm32_00_02,w_bits_08_10); }
-:dec  w_bits_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { sub(w_rm8_00_02,w_bits_08_10); }
-:dec  w_bits_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { sub(w_rm16_00_02,w_bits_08_10); }
-:dec  w_bits_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sub(w_rm32_00_02,w_bits_08_10); }
+:inc  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { add(w_rm8_00_02,w_imm3_08_10); }
+:inc  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { add(w_rm16_00_02,w_imm3_08_10); }
+:inc  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { add(w_rm32_00_02,w_imm3_08_10); }
+:dec  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { sub(w_rm8_00_02,w_imm3_08_10); }
+:dec  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { sub(w_rm16_00_02,w_imm3_08_10); }
+:dec  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sub(w_rm32_00_02,w_imm3_08_10); }
 :scc  cc16,w_rm8_00_02           is w_op_12_15=0b0111 & cc16 & w_flags_08_11 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 {}
 :scc  cc16,w_rm16_00_02          is w_op_12_15=0b0111 & cc16 & w_flags_08_11 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
 :scc  cc16,w_rm32_00_02          is w_op_12_15=0b0111 & cc16 & w_flags_08_11 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 {}
@@ -670,9 +670,9 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :ld w_rn8_08_10,w_rm8_00_02   is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { w_rm8_00_02 = w_rn8_08_10; }
 :ld w_rn16_08_10,w_rm16_00_02 is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { w_rm16_00_02 = w_rn16_08_10; }
 :ld w_rn32_08_10,w_rm32_00_02 is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { w_rm32_00_02 = w_rn32_08_10; }
-:ld w_rm8_00_02,w_bits_08_10  is w_op_12_15=0b1010 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { w_rm8_00_02 = w_bits_08_10; }
-:ld w_rm16_00_02,w_bits_08_10 is w_op_12_15=0b1010 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { w_rm16_00_02 = w_bits_08_10; }
-:ld w_rm32_00_02,w_bits_08_10 is w_op_12_15=0b1010 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { w_rm32_00_02 = w_bits_08_10; }
+:ld w_rm8_00_02,w_imm3_08_10  is w_op_12_15=0b1010 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { w_rm8_00_02 = w_imm3_08_10; }
+:ld w_rm16_00_02,w_imm3_08_10 is w_op_12_15=0b1010 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { w_rm16_00_02 = w_imm3_08_10; }
+:ld w_rm32_00_02,w_imm3_08_10 is w_op_12_15=0b1010 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { w_rm32_00_02 = w_imm3_08_10; }
 
 :ex w_rn8_08_10,w_rm8_00_02   is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 {}
 :ex w_rn16_08_10,w_rm16_00_02 is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
@@ -702,9 +702,9 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :cp  w_rm16_00_02,imm16 is w_op_08_15=0xcf & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { cp(w_rm16_00_02,imm16); }
 :cp  w_rm32_00_02,imm32 is w_op_08_15=0xcf & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { cp(w_rm32_00_02,imm32); }
 
-:cp w_rm8_00_02,w_bits_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { cp(w_rm8_00_02,w_bits_08_10 ); }
-:cp w_rm16_00_02,w_bits_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { cp(w_rm16_00_02,w_bits_08_10); }
-:cp w_rm32_00_02,w_bits_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { cp(w_rm32_00_02,w_bits_08_10); }
+:cp w_rm8_00_02,w_imm3_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { cp(w_rm8_00_02,w_imm3_08_10 ); }
+:cp w_rm16_00_02,w_imm3_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { cp(w_rm16_00_02,w_imm3_08_10); }
+:cp w_rm32_00_02,w_imm3_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { cp(w_rm32_00_02,w_imm3_08_10); }
 
 :rlc imm8,w_rm8_00_02  is w_op_08_15=0xe8 & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8 {}
 :rlc imm8,w_rm16_00_02 is w_op_08_15=0xe8 & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm8 {}
@@ -821,12 +821,12 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :divs  w_rn8_08_10,(addr8m32)    is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { divs(w_rn8_08_10,addr8m32); }
 :divs  w_rn16_08_10,(addr16m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { divs(w_rn16_08_10,addr16m32); }
 :divs  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { divs(w_rn32_08_10,addr32m32); }
-:inc   w_bits_08_10,(addr8m32)   is w_op_12_15=0b0110 & w_op_11=0b0 & w_bits_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { add(addr8m32,w_bits_08_10); }
-:inc   w_bits_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_bits_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { add(addr16m32,w_bits_08_10); }
-:inc   w_bits_08_10,(addr32m32)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_bits_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { add(addr32m32,w_bits_08_10); }
-:dec   w_bits_08_10,(addr8m32)   is w_op_12_15=0b0110 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { sub(addr8m32,w_bits_08_10); }
-:dec   w_bits_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sub(addr16m32,w_bits_08_10); }
-:dec   w_bits_08_10,(addr32m32)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_bits_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sub(addr32m32,w_bits_08_10); }
+:inc   w_imm3_08_10,(addr8m32)   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { add(addr8m32,w_imm3_08_10); }
+:inc   w_imm3_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { add(addr16m32,w_imm3_08_10); }
+:inc   w_imm3_08_10,(addr32m32)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { add(addr32m32,w_imm3_08_10); }
+:dec   w_imm3_08_10,(addr8m32)   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { sub(addr8m32,w_imm3_08_10); }
+:dec   w_imm3_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sub(addr16m32,w_imm3_08_10); }
+:dec   w_imm3_08_10,(addr32m32)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sub(addr32m32,w_imm3_08_10); }
 :rlc   (addr8m32)                is w_op_08_15=0x78 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 {}
 :rlcw  (addr16m32)               is w_op_08_15=0x78 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 {}
 :rrc   (addr8m32)                is w_op_08_15=0x79 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 {}
@@ -921,16 +921,16 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :ldcf  A,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_08_15=0b00101011 & A {}
 :stcf  A,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_08_15=0b00101100 & A {}
 
-:andcf w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1000 & w_op_11=0b0 & w_bits_08_10 {}
-:orcf  w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1000 & w_op_11=0b1 & w_bits_08_10 {}
-:xorcf w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1001 & w_op_11=0b0 & w_bits_08_10 {}
-:ldcf  w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1001 & w_op_11=0b1 & w_bits_08_10 {}
-:stcf  w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1010 & w_op_11=0b0 & w_bits_08_10 {}
-:tset  w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1010 & w_op_11=0b1 & w_bits_08_10 {}
-:res   w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1011 & w_op_11=0b0 & w_bits_08_10 {}
-:set   w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1011 & w_op_11=0b1 & w_bits_08_10 {}
-:chg   w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1100 & w_op_11=0b0 & w_bits_08_10 {}
-:bit   w_bits_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1100 & w_op_11=0b1 & w_bits_08_10 {}
+:andcf w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1000 & w_op_11=0b0 & w_imm3_08_10 {}
+:orcf  w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1000 & w_op_11=0b1 & w_imm3_08_10 {}
+:xorcf w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1001 & w_op_11=0b0 & w_imm3_08_10 {}
+:ldcf  w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1001 & w_op_11=0b1 & w_imm3_08_10 {}
+:stcf  w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1010 & w_op_11=0b0 & w_imm3_08_10 {}
+:tset  w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1010 & w_op_11=0b1 & w_imm3_08_10 {}
+:res   w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1011 & w_op_11=0b0 & w_imm3_08_10 {}
+:set   w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1011 & w_op_11=0b1 & w_imm3_08_10 {}
+:chg   w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1100 & w_op_11=0b0 & w_imm3_08_10 {}
+:bit   w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1100 & w_op_11=0b1 & w_imm3_08_10 {}
 
 :jp cc16,addr32m32   is w_op_04_07=0b1011 & w_op_03=0b0 & addr32m32 & w_op_12_15=0b1101 & cc16 & w_flags_08_11 { if (cc16) goto addr32m32; }
 :call cc16,addr32m32 is w_op_04_07=0b1011 & w_op_03=0b0 & addr32m32 & w_op_12_15=0b1110 & cc16 & w_flags_08_11 {

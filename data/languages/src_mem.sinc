@@ -41,12 +41,12 @@
 :divs  r8,(addr8d32)         is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,addr8d32); }
 :divs  r16,(addr16d32)       is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,addr16d32); }
 :divs  r32,(addr32d32)       is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0101 & op_03=0b1 & r32 { divs(r32,addr32d32); }
-:inc   bits_00_02,(addr8d32)    is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr8d32,bits_00_02); }
-:inc   bits_00_02,(addr16d32)   is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr16d32,bits_00_02); }
-:inc   bits_00_02,(addr32d32)   is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr32d32,bits_00_02); }
-:dec   bits_00_02,(addr8d32)    is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr8d32,bits_00_02); }
-:dec   bits_00_02,(addr16d32)   is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr16d32,bits_00_02); }
-:dec   bits_00_02,(addr32d32)   is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr32d32,bits_00_02); }
+:inc   imm3_00_02,(addr8d32)    is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr8d32,imm3_00_02); }
+:inc   imm3_00_02,(addr16d32)   is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr16d32,imm3_00_02); }
+:inc   imm3_00_02,(addr32d32)   is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr32d32,imm3_00_02); }
+:dec   imm3_00_02,(addr8d32)    is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr8d32,imm3_00_02); }
+:dec   imm3_00_02,(addr16d32)   is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr16d32,imm3_00_02); }
+:dec   imm3_00_02,(addr32d32)   is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr32d32,imm3_00_02); }
 :rlc   (addr8d32)            is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_00_07=0x78 {}
 :rlcw  (addr16d32)           is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_00_07=0x78 {}
 :rrc   (addr8d32)            is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_00_07=0x79 {}
@@ -155,10 +155,10 @@
 :div   r16,(addr8i16)      is op_00_07=0xd0 ; addr8i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,addr8i16); }
 :divs  r8,(addr8i8)        is op_00_07=0xc0 ; addr8i8  ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,addr8i8); }
 :divs  r16,(addr8i16)      is op_00_07=0xd0 ; addr8i16 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,addr8i16); }
-:inc   bits_00_02,(addr8i8)   is op_00_07=0xc0 ; addr8i8  ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr8i8,bits_00_02); }
-:incw  bits_00_02,(addr8i16)  is op_00_07=0xd0 ; addr8i16 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr8i16,bits_00_02); }
-:dec   bits_00_02,(addr8i8)   is op_00_07=0xc0 ; addr8i8  ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr8i8,bits_00_02); }
-:decw  bits_00_02,(addr8i16)  is op_00_07=0xd0 ; addr8i16 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr8i16,bits_00_02); }
+:inc   imm3_00_02,(addr8i8)   is op_00_07=0xc0 ; addr8i8  ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr8i8,imm3_00_02); }
+:incw  imm3_00_02,(addr8i16)  is op_00_07=0xd0 ; addr8i16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr8i16,imm3_00_02); }
+:dec   imm3_00_02,(addr8i8)   is op_00_07=0xc0 ; addr8i8  ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr8i8,imm3_00_02); }
+:decw  imm3_00_02,(addr8i16)  is op_00_07=0xd0 ; addr8i16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr8i16,imm3_00_02); }
 :rlc   (addr8i8)           is op_00_07=0xc0 ; addr8i8  ; op_00_07=0x78 {}
 :rlcw  (addr8i16)          is op_00_07=0xd0 ; addr8i16 ; op_00_07=0x78 {}
 :rrc   (addr8i8)           is op_00_07=0xc0 ; addr8i8  ; op_00_07=0x79 {}
@@ -267,10 +267,10 @@
 :div   r16,(addr16i16)      is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,addr16i16); }
 :divs  r8,(addr16i16)       is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,addr16i16:1); }
 :divs  r16,(addr16i16)      is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,addr16i16); }
-:inc   bits_00_02,(addr16i16)  is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr16i16,bits_00_02); }
-:incw  bits_00_02,(addr16i16)  is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr16i16,bits_00_02); }
-:dec   bits_00_02,(addr16i16)  is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr16i16,bits_00_02); }
-:decw  bits_00_02,(addr16i16)  is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr16i16,bits_00_02); }
+:inc   imm3_00_02,(addr16i16)  is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr16i16,imm3_00_02); }
+:incw  imm3_00_02,(addr16i16)  is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr16i16,imm3_00_02); }
+:dec   imm3_00_02,(addr16i16)  is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr16i16,imm3_00_02); }
+:decw  imm3_00_02,(addr16i16)  is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr16i16,imm3_00_02); }
 :rlc   (addr16i16)          is op_00_07=0xc1 ; addr16i16 ; op_00_07=0x78 {}
 :rlcw  (addr16i16)          is op_00_07=0xd1 ; addr16i16 ; op_00_07=0x78 {}
 :rrc   (addr16i16)          is op_00_07=0xc1 ; addr16i16 ; op_00_07=0x79 {}
@@ -379,10 +379,10 @@
 :div   r16,(addr24i16)      is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,addr24i16); }
 :divs  r8,(addr24i8)        is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,addr24i8); }
 :divs  r16,(addr24i16)      is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,addr24i16); }
-:inc   bits_00_02,(addr24i24)  is op_00_07=0xc2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr24i24,bits_00_02); }
-:incw  bits_00_02,(addr24i24)  is op_00_07=0xd2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(addr24i24,bits_00_02); }
-:dec   bits_00_02,(addr24i24)  is op_00_07=0xc2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr24i24,bits_00_02); }
-:decw  bits_00_02,(addr24i24)  is op_00_07=0xd2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(addr24i24,bits_00_02); }
+:inc   imm3_00_02,(addr24i24)  is op_00_07=0xc2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr24i24,imm3_00_02); }
+:incw  imm3_00_02,(addr24i24)  is op_00_07=0xd2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(addr24i24,imm3_00_02); }
+:dec   imm3_00_02,(addr24i24)  is op_00_07=0xc2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr24i24,imm3_00_02); }
+:decw  imm3_00_02,(addr24i24)  is op_00_07=0xd2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(addr24i24,imm3_00_02); }
 :rlc   (addr24i8)           is op_00_07=0xc2 ; addr24i8  ; op_00_07=0x78 {}
 :rlcw  (addr24i16)          is op_00_07=0xd2 ; addr24i16 ; op_00_07=0x78 {}
 :rrc   (addr24i8)           is op_00_07=0xc2 ; addr24i8  ; op_00_07=0x79 {}
@@ -491,10 +491,10 @@
 :div   r16,(r32b_d00)      is op_00_07=0xd3 ; r32b_d00 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,r32b_d00:2); }
 :divs  r8,(r32b_d00)       is op_00_07=0xc3 ; r32b_d00 ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,r32b_d00:1); }
 :divs  r16,(r32b_d00)      is op_00_07=0xd3 ; r32b_d00 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,r32b_d00:2); }
-:inc   bits_00_02,(r32b_d00)  is op_00_07=0xc3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_d00,bits_00_02); }
-:incw  bits_00_02,(r32b_d00)  is op_00_07=0xd3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_d00,bits_00_02); }
-:dec   bits_00_02,(r32b_d00)  is op_00_07=0xc3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_d00,bits_00_02); }
-:decw  bits_00_02,(r32b_d00)  is op_00_07=0xd3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_d00,bits_00_02); }
+:inc   imm3_00_02,(r32b_d00)  is op_00_07=0xc3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_d00,imm3_00_02); }
+:incw  imm3_00_02,(r32b_d00)  is op_00_07=0xd3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_d00,imm3_00_02); }
+:dec   imm3_00_02,(r32b_d00)  is op_00_07=0xc3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_d00,imm3_00_02); }
+:decw  imm3_00_02,(r32b_d00)  is op_00_07=0xd3 ; r32b_d00 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_d00,imm3_00_02); }
 :rlc   (r32b_d00)          is op_00_07=0xc3 ; r32b_d00 ; op_00_07=0x78 {}
 :rlcw  (r32b_d00)          is op_00_07=0xd3 ; r32b_d00 ; op_00_07=0x78 {}
 :rrc   (r32b_d00)          is op_00_07=0xc3 ; r32b_d00 ; op_00_07=0x79 {}
@@ -603,10 +603,10 @@
 :div   r16,(r32b_d16)      is op_00_07=0xd3 ; r32b_d16 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,r32b_d16:2); }
 :divs  r8,(r32b_d16)       is op_00_07=0xc3 ; r32b_d16 ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,r32b_d16:1); }
 :divs  r16,(r32b_d16)      is op_00_07=0xd3 ; r32b_d16 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,r32b_d16:2); }
-:inc   bits_00_02,(r32b_d16)  is op_00_07=0xc3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_d16,bits_00_02); }
-:incw  bits_00_02,(r32b_d16)  is op_00_07=0xd3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_d16,bits_00_02); }
-:dec   bits_00_02,(r32b_d16)  is op_00_07=0xc3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_d16,bits_00_02); }
-:decw  bits_00_02,(r32b_d16)  is op_00_07=0xd3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_d16,bits_00_02); }
+:inc   imm3_00_02,(r32b_d16)  is op_00_07=0xc3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_d16,imm3_00_02); }
+:incw  imm3_00_02,(r32b_d16)  is op_00_07=0xd3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_d16,imm3_00_02); }
+:dec   imm3_00_02,(r32b_d16)  is op_00_07=0xc3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_d16,imm3_00_02); }
+:decw  imm3_00_02,(r32b_d16)  is op_00_07=0xd3 ; r32b_d16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_d16,imm3_00_02); }
 :rlc   (r32b_d16)          is op_00_07=0xc3 ; r32b_d16 ; op_00_07=0x78 {}
 :rlcw  (r32b_d16)          is op_00_07=0xd3 ; r32b_d16 ; op_00_07=0x78 {}
 :rrc   (r32b_d16)          is op_00_07=0xc3 ; r32b_d16 ; op_00_07=0x79 {}
@@ -715,10 +715,10 @@
 :div   r16,(r32b_drb)      is op_00_07=0xd3 ; r32b_drb ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,r32b_drb:2); }
 :divs  r8,(r32b_drb)       is op_00_07=0xc3 ; r32b_drb ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,r32b_drb:1); }
 :divs  r16,(r32b_drb)      is op_00_07=0xd3 ; r32b_drb ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,r32b_drb:2); }
-:inc   bits_00_02,(r32b_drb)  is op_00_07=0xc3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_drb,bits_00_02); }
-:incw  bits_00_02,(r32b_drb)  is op_00_07=0xd3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_drb,bits_00_02); }
-:dec   bits_00_02,(r32b_drb)  is op_00_07=0xc3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_drb,bits_00_02); }
-:decw  bits_00_02,(r32b_drb)  is op_00_07=0xd3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_drb,bits_00_02); }
+:inc   imm3_00_02,(r32b_drb)  is op_00_07=0xc3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_drb,imm3_00_02); }
+:incw  imm3_00_02,(r32b_drb)  is op_00_07=0xd3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_drb,imm3_00_02); }
+:dec   imm3_00_02,(r32b_drb)  is op_00_07=0xc3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_drb,imm3_00_02); }
+:decw  imm3_00_02,(r32b_drb)  is op_00_07=0xd3 ; r32b_drb ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_drb,imm3_00_02); }
 :rlc   (r32b_drb)          is op_00_07=0xc3 ; r32b_drb ; op_00_07=0x78 {}
 :rlcw  (r32b_drb)          is op_00_07=0xd3 ; r32b_drb ; op_00_07=0x78 {}
 :rrc   (r32b_drb)          is op_00_07=0xc3 ; r32b_drb ; op_00_07=0x79 {}
@@ -827,10 +827,10 @@
 :div   r16,(r32b_pre)      is op_00_07=0xd4 ; r32b_pre ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,r32b_pre:2); }
 :divs  r8,(r32b_pre)       is op_00_07=0xc4 ; r32b_pre ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,r32b_pre:1); }
 :divs  r16,(r32b_pre)      is op_00_07=0xd4 ; r32b_pre ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,r32b_pre:2); }
-:inc   bits_00_02,(r32b_pre)  is op_00_07=0xc4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_pre,bits_00_02); }
-:incw  bits_00_02,(r32b_pre)  is op_00_07=0xd4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_pre,bits_00_02); }
-:dec   bits_00_02,(r32b_pre)  is op_00_07=0xc4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_pre,bits_00_02); }
-:decw  bits_00_02,(r32b_pre)  is op_00_07=0xd4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_pre,bits_00_02); }
+:inc   imm3_00_02,(r32b_pre)  is op_00_07=0xc4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_pre,imm3_00_02); }
+:incw  imm3_00_02,(r32b_pre)  is op_00_07=0xd4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_pre,imm3_00_02); }
+:dec   imm3_00_02,(r32b_pre)  is op_00_07=0xc4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_pre,imm3_00_02); }
+:decw  imm3_00_02,(r32b_pre)  is op_00_07=0xd4 ; r32b_pre ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_pre,imm3_00_02); }
 :rlc   (r32b_pre)          is op_00_07=0xc4 ; r32b_pre ; op_00_07=0x78 {}
 :rlcw  (r32b_pre)          is op_00_07=0xd4 ; r32b_pre ; op_00_07=0x78 {}
 :rrc   (r32b_pre)          is op_00_07=0xc4 ; r32b_pre ; op_00_07=0x79 {}
@@ -939,10 +939,10 @@
 :div   r16,(r32b_pos)      is op_00_07=0xd5 ; r32b_pos ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,r32b_pos:2); }
 :divs  r8,(r32b_pos)       is op_00_07=0xc5 ; r32b_pos ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,r32b_pos:1); }
 :divs  r16,(r32b_pos)      is op_00_07=0xd5 ; r32b_pos ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,r32b_pos:2); }
-:inc   bits_00_02,(r32b_pos)  is op_00_07=0xc5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_pos,bits_00_02); }
-:incw  bits_00_02,(r32b_pos)  is op_00_07=0xd5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b0 & bits_00_02 { add(r32b_pos,bits_00_02); }
-:dec   bits_00_02,(r32b_pos)  is op_00_07=0xc5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_pos,bits_00_02); }
-:decw  bits_00_02,(r32b_pos)  is op_00_07=0xd5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b1 & bits_00_02 { sub(r32b_pos,bits_00_02); }
+:inc   imm3_00_02,(r32b_pos)  is op_00_07=0xc5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_pos,imm3_00_02); }
+:incw  imm3_00_02,(r32b_pos)  is op_00_07=0xd5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { add(r32b_pos,imm3_00_02); }
+:dec   imm3_00_02,(r32b_pos)  is op_00_07=0xc5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_pos,imm3_00_02); }
+:decw  imm3_00_02,(r32b_pos)  is op_00_07=0xd5 ; r32b_pos ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { sub(r32b_pos,imm3_00_02); }
 :rlc   (r32b_pos)          is op_00_07=0xc5 ; r32b_pos ; op_00_07=0x78 {}
 :rlcw  (r32b_pos)          is op_00_07=0xd5 ; r32b_pos ; op_00_07=0x78 {}
 :rrc   (r32b_pos)          is op_00_07=0xc5 ; r32b_pos ; op_00_07=0x79 {}
