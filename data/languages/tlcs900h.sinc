@@ -16,9 +16,9 @@ define token ins8 (8)
    op_03 = (3,3)
    op_04_05 = (4,5)
    op_04_07 = (4,7)
-   op_06_06 = (6,6)
+   op_06 = (6,6)
    op_06_07 = (6,7)
-   op_07_07 = (7,7)
+   op_07 = (7,7)
 
    r8 = (0,2)
    r16 = (0,2)
@@ -60,6 +60,7 @@ define token ins16 (16)
 ;
 
 define token ins24 (24)
+   l_op_00_01 = (0,1)
    l_op_00_07 = (0,7)
    l_op_03 = (3,3)
    l_op_04_07 = (4,7)
@@ -67,6 +68,11 @@ define token ins24 (24)
    l_r8_00_02 = (0,2)
    l_r16_00_02 = (0,2)
    l_r32_00_02 = (0,2)
+
+   l_r8b_16_23 = (16,23)
+   l_r16b_16_23 = (16,23)
+   l_r32b_02_07 = (2,7)
+   l_r32b_08_15 = (8,15)
 
    l_imm16_08_23 = (8,23)
 ;
@@ -99,7 +105,7 @@ attach variables [ r16 w_rm16_00_02 w_rn16_08_10 ] [ WA BC DE HL IX IY IZ SP ];
 attach variables [ r8  w_rm8_00_02  w_rn8_08_10  ] [ W A B C D E H L ];
 
 # Banked registers
-attach variables [ r8b_00_07 ] [
+attach variables [ r8b_00_07 l_r8b_16_23 ] [
     RA_0 RW_0 QA_0 QW_0 RC_0 RB_0 QC_0 QB_0 RE_0 RD_0 QE_0 QD_0 RL_0 RH_0 QL_0 QH_0
     RA_1 RW_1 QA_1 QW_1 RC_1 RB_1 QC_1 QB_1 RE_1 RD_1 QE_1 QD_1 RL_1 RH_1 QL_1 QH_1
     RA_2 RW_2 QA_2 QW_2 RC_2 RB_2 QC_2 QB_2 RE_2 RD_2 QE_2 QD_2 RL_2 RH_2 QL_2 QH_2
@@ -117,7 +123,7 @@ attach variables [ r8b_00_07 ] [
     A    W    QA   QW   C    B    QC   QB   E    D    QE   QD   L    H    QL   QH
     IXL  IXH  QIXL QIXH IYL  IYH  QIYL QIYH IZL  IZH  QIZL QIZH SPL  SPH  QSPL QSPH
 ];
-attach variables [ r16b_00_07 ] [
+attach variables [ r16b_00_07 l_r16b_16_23 ] [
     RWA_0 RWA_0 QWA_0 QWA_0 RBC_0 RBC_0 QBC_0 QBC_0 RDE_0 RDE_0 QDE_0 QDE_0 RHL_0 RHL_0 QHL_0 QHL_0
     RWA_1 RWA_1 QWA_1 QWA_1 RBC_1 RBC_1 QBC_1 QBC_1 RDE_1 RDE_1 QDE_1 QDE_1 RHL_1 RHL_1 QHL_1 QHL_1
     RWA_2 RWA_2 QWA_2 QWA_2 RBC_2 RBC_2 QBC_2 QBC_2 RDE_2 RDE_2 QDE_2 QDE_2 RHL_2 RHL_2 QHL_2 QHL_2
@@ -135,7 +141,7 @@ attach variables [ r16b_00_07 ] [
     WA    WA    QWA   QWA   BC    BC    QBC   QBC   DE    DE    QDE   QDE   HL    HL    QHL   QHL
     IX    IX    QIX   QIX   IY    IY    QIY   QIY   IZ    IZ    QIZ   QIZ   SP    SP    QSP   QSP
 ];
-attach variables [ r32b_00_07 ] [
+attach variables [ r32b_00_07 l_r32b_08_15 ] [
     XWA_0 XWA_0 XWA_0 XWA_0 XBC_0 XBC_0 XBC_0 XBC_0 XDE_0 XDE_0 XDE_0 XDE_0 XHL_0 XHL_0 XHL_0 XHL_0
     XWA_1 XWA_1 XWA_1 XWA_1 XBC_1 XBC_1 XBC_1 XBC_1 XDE_1 XDE_1 XDE_1 XDE_1 XHL_1 XHL_1 XHL_1 XHL_1
     XWA_2 XWA_2 XWA_2 XWA_2 XBC_2 XBC_2 XBC_2 XBC_2 XDE_2 XDE_2 XDE_2 XDE_2 XHL_2 XHL_2 XHL_2 XHL_2
@@ -154,7 +160,7 @@ attach variables [ r32b_00_07 ] [
     XIX   XIX   XIX   XIX   XIY   XIY   XIY   XIY   XIZ   XIZ   XIZ   XIZ   XSP   XSP   XSP   XSP
 ];
 # Banked register encoded in 6-bits, see "Appendix A: Memory addressing mode specify code"
-attach variables [ r32b_02_07 ] [
+attach variables [ r32b_02_07 l_r32b_02_07 ] [
     XWA_0 XBC_0 XDE_0 XHL_0
     XWA_1 XBC_1 XDE_1 XHL_1
     XWA_2 XBC_2 XDE_2 XHL_2
@@ -466,26 +472,22 @@ addr24i8:   imm24 is imm24 { tmp:1 = imm24; export *:1 tmp; }
 addr24i16:  imm24 is imm24 { tmp:2 = imm24; export *:2 tmp; }
 addr24i24:  imm24 is imm24 { tmp:3 = imm24; export *:3 tmp; }
 addr24i32:  imm24 is imm24 { tmp:4 = imm24; export *:4 tmp; }
-addr8d32:  w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:1 = *:1 (w_rm32_00_02+w_imm8_08_15); export tmp; }
-addr16d32: w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:2 = *:2 (w_rm32_00_02+w_imm8_08_15); export tmp; }
-addr32d32: w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = *:4 (w_rm32_00_02+w_imm8_08_15); export tmp; }
-addr8m8:   w_rm8_00_02  is w_rm8_00_02  { export *:1 w_rm8_00_02; }
-addr8m16:  w_rm16_00_02 is w_rm16_00_02 { export *:1 w_rm16_00_02; }
+addr8d32:  w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:1 = *:1 (w_rm32_00_02 + w_imm8_08_15); export tmp; }
+addr16d32: w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:2 = *:2 (w_rm32_00_02 + w_imm8_08_15); export tmp; }
+addr32d32: w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = *:4 (w_rm32_00_02 + w_imm8_08_15); export tmp; }
 addr8m32:  w_rm32_00_02 is w_rm32_00_02 { export *:1 w_rm32_00_02; }
-addr16m8:  w_rm8_00_02  is w_rm8_00_02  { export *:2 w_rm8_00_02; }
-addr16m16: w_rm16_00_02 is w_rm16_00_02 { export *:2 w_rm16_00_02; }
 addr16m32: w_rm32_00_02 is w_rm32_00_02 { export *:2 w_rm32_00_02; }
-addr32m8:  w_rm8_00_02  is w_rm8_00_02  { export *:4 w_rm8_00_02; }
-addr32m16: w_rm16_00_02 is w_rm16_00_02 { export *:4 w_rm16_00_02; }
 addr32m32: w_rm32_00_02 is w_rm32_00_02 { export *:4 w_rm32_00_02; }
 
-r32b_d00: r32b_02_07     is r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
-r32b_pre: "-"^r32b_02_07 is r32b_02_07 & op_00_01 { r32b_02_07 = r32b_02_07 - (op_00_01 << 1); export r32b_02_07; }
-r32b_pos: r32b_02_07^"+" is r32b_02_07 & op_00_01 { tmp = r32b_02_07; r32b_02_07 = r32b_02_07 + (op_00_01 << 1); export tmp; }
+# Direct + increment/decrement memory addressing modes
+r32b_mem: r32b_02_07     is op_06=0b1 & op_00_03=0b0011 ; r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
+r32b_mem: "-"^r32b_02_07 is op_06=0b1 & op_00_03=0b0100 ; r32b_02_07 & op_00_01      { r32b_02_07 = r32b_02_07 - (op_00_01 << 1); export r32b_02_07; }
+r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01      { tmp = r32b_02_07; r32b_02_07 = r32b_02_07 + (op_00_01 << 1); export tmp; }
 
-r32b_d16: r32b_02_07^"+"^imm16      is r32b_02_07 & op_00_01=0b01 ; imm16 { tmp:4 = *:4 (r32b_02_07+imm16); export tmp; }
-r32b_drb: r32b_00_07^"+"^r8b_00_07  is op_00_07=0b011 ; r32b_00_07 ; r8b_00_07  { tmp:4 = *:4 (r32b_00_07+zext(r8b_00_07)); export tmp; }
-r32b_drb: r32b_00_07^"+"^r16b_00_07 is op_00_07=0b111 ; r32b_00_07 ; r16b_00_07 { tmp:4 = *:4 (r32b_00_07+zext(r16b_00_07)); export tmp; }
+# Displacement + register offset memory addressing modes
+r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp:4 = *:4 (l_r32b_02_07 + l_imm16_08_23); export tmp; }
+r32b_dsp: l_r32b_08_15^"+"^l_r8b_16_23   is l_op_00_07=0b011 & l_r32b_08_15 & l_r8b_16_23  { tmp:4 = *:4 (l_r32b_08_15 + zext(l_r8b_16_23)); export tmp; }
+r32b_dsp: l_r32b_08_15^"+"^l_r16b_16_23  is l_op_00_07=0b111 & l_r32b_08_15 & l_r16b_16_23 { tmp:4 = *:4 (l_r32b_08_15 + zext(l_r16b_16_23)); export tmp; }
 
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
 rel16: reloc is simm16 [ reloc=((inst_next >> 16) << 16) | ((inst_next + simm16) & 0xFFFF); ] { export *[ram]:4 reloc; }
