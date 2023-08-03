@@ -235,8 +235,9 @@ attach variables [ r8c_00_07 ] [
     _ _ _     _
 ];
 
-# Macros
+# Macros, see "Appendix B: Instruction Lists"
 
+# Flag setters
 macro setResultFlags(result) {
     $(S_flag) = (result s< 0);
     $(Z_flag) = (result == 0);
@@ -253,6 +254,7 @@ macro setSubtractCarryFlags(op1,op2) {
 }
 macro setSubtractFlags(op1,op2) {
     $(C_flag) = (op1 < op2);
+    $(N_flag) = 1;
 }
 macro setShiftFlags(result) {
     setResultFlags(result);
@@ -261,33 +263,21 @@ macro setShiftFlags(result) {
     $(N_flag) = 0;
     $(C_flag) = (result s< 0);
 }
-
-macro push32(val32) {
-    XSP = XSP - 4;
-    *:4 XSP = val32;
-}
-macro pop32(ret32) {
-    ret32 = *:4 XSP;
-    XSP = XSP + 4;
-}
-macro push16(val16) {
-    XSP = XSP - 2;
-    *:2 XSP = val16;
-}
-macro pop16(ret16) {
-    ret16 = *:2 XSP;
-    XSP = XSP + 2;
-}
-macro push8(val8) {
-    XSP = XSP - 1;
-    *:1 XSP = val8;
-}
-macro pop8(ret8) {
-    ptr:2 = XSP;
-    ret8 = *:1 ptr;
-    XSP = XSP + 1;
+macro setOrFlags(result) {
+    $(H_flag) = 0;
+    $(V_flag) = (popcount(result) & 1:1) == 0;
+    $(N_flag) = 0;
+    $(C_flag) = 0;
 }
 
+# (2) Exchange
+macro ex(dst, src) {
+    local temp = dst;
+    dst = src;
+    src = temp;
+}
+
+# (4) Arithmetic Operations
 macro add(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
@@ -320,38 +310,11 @@ macro sbc(op1, op2) {
 	setSubtractFlags(tmp_op1, tmp_op2);
     setResultFlags(op1);
 }
-macro mul(op1, op2) {
-    op1 = op1 * op2;
-    setResultFlags(op1);
-}
-macro muls(op1, op2) {
-    op1 = op1 * op2;
-    setResultFlags(op1);
-}
-macro div(op1, op2) {
-    op1 = op1 / op2;
-    setResultFlags(op1);
-}
-macro divs(op1, op2) {
-    op1 = op1 s/ op2;
-    setResultFlags(op1);
-}
-macro and(op1, op2) {
-    op1 = op1 & op2;
-    setResultFlags(op1);
-}
-macro or(op1, op2) {
-    op1 = op1 | op2;
-    setResultFlags(op1);
-}
-macro xor(op1, op2) {
-    op1 = op1 ^ op2;
-    setResultFlags(op1);
-}
-macro cpl(op1) {
-    op1 = ~op1;
-    $(H_flag) = 1;
+macro cp(op1, op2) {
+    local tmp = op1 - op2;
+    setResultFlags(tmp);
     $(N_flag) = 1;
+    $(C_flag) = carry(op1,op2);
 }
 macro neg(op1) {
     local tmp_op1 = op1;
@@ -359,43 +322,116 @@ macro neg(op1) {
 	setSubtractFlags(0, tmp_op1);
     setResultFlags(op1);
 }
-macro cp(op1, op2) {
-    local tmp = op1 - op2;
-    setResultFlags(tmp);
+macro extz16(dst) {
+    local temp:2 = dst:2;
+    dst = zext(temp);
 }
-macro sll(count, reg) {
-	reg = reg << count;
-    setShiftFlags(reg);
+macro extz32(dst) {
+    local temp:4 = dst:4;
+    dst = zext(temp);
 }
-macro srl(count, reg) {
-    reg = reg >> count;
-    setShiftFlags(reg);
+macro exts16(dst) {
+    local temp:2 = dst:2;
+    dst = sext(temp);
 }
-macro sla(count, reg) {
-	reg = reg << count;
-    setShiftFlags(reg);
+macro exts32(dst) {
+    local temp:4 = dst:4;
+    dst = sext(temp);
 }
-macro sra(count, reg) {
-    reg = reg s>> count;
-    setShiftFlags(reg);
+macro paa(dst) {
+    if ((dst & 1) == 0) goto <end>;
+    dst = dst + 1;
+<end>
 }
-macro rlc(count, reg, width) {
-	reg = (reg << count) | (reg >> (width - count));
-    setShiftFlags(reg);
+macro mul(op1, op2) {
+    op1 = op1 * op2;
 }
-macro rrc(count, reg, width) {
-    reg = (reg >> count) | (reg << (width - count));
-    setShiftFlags(reg);
+macro muls(op1, op2) {
+    op1 = op1 * op2;
 }
-macro rl(count, reg, width) {
-	reg = (reg << count) | (reg >> (width - count)) | (zext($(C_flag)) << (count - 1));
-    setShiftFlags(reg);
+macro div(op1, op2) {
+    op1 = op1 / op2;
 }
-macro rr(count, reg, width) {
-    reg = (reg >> count) | (reg << (width - count)) | (zext($(C_flag)) << (width - count));
-    setShiftFlags(reg);
+macro divs(op1, op2) {
+    op1 = op1 s/ op2;
+}
+macro mula(dst) {
+    local mul_result:2 = (*:2 XDE) * (*:2 XHL);
+    dst = dst + mul_result;
+    XHL = XHL - 2;
+    $(Z_flag) = (dst == 0);
+    $(V_flag) = (mul_result / (*:2 XDE) == (*:2 XHL));
+}
+macro minc(n, dst, step) {
+    if ((dst % n) == n - step) goto <cycle>;
+    dst = dst + step;
+    goto <end>;
+<cycle>
+    dst = dst - (n - step);
+<end>
+}
+macro mdec(n, dst, step) {
+    if ((dst % n) == 0) goto <cycle>;
+    dst = dst - step;
+    goto <end>;
+<cycle>
+    dst = dst + (n - step);
+<end>
 }
 
+# (3) Load Increment/Decrement & Compare Increment/Decrement Size
+macro ld_rep(rm, rn, step, once) {
+<top>
+    rm = rm + step; rn = rn + step; *:4 rm = *:4 rn; BC = BC - 1;
+    if (once == 1:1) goto <end>;
+    if (BC == 0) goto <end>;
+    goto <top>;
+<end>
+    $(H_flag) = 0;
+    $(V_flag) = (BC != 0);
+    $(C_flag) = 0;
+}
+macro cp_rep(rm, rn, step, once) {
+<top>
+    cp(rm, rn); rn = rn + step; BC = BC - 1;
+    if (once == 1:1) goto <end>;
+    if (BC == 0) goto <end>;
+    if (rm == rn) goto <end>;
+    goto <top>;
+<end>
+    $(V_flag) = (BC != 0);
+}
+
+# (5) Logical operations
+macro and(op1, op2) {
+    op1 = op1 & op2;
+    setResultFlags(op1);
+}
+macro or(op1, op2) {
+    op1 = op1 | op2;
+    setResultFlags(op1);
+    setOrFlags(op1);
+}
+macro xor(op1, op2) {
+    op1 = op1 ^ op2;
+    setResultFlags(op1);
+    setOrFlags(op1);
+}
+macro cpl(op1) {
+    op1 = ~op1;
+    $(H_flag) = 1;
+    $(N_flag) = 1;
+}
+
+# (6) Bit operations
+macro ldcf(n, src) {
+    local src_bit:1 = ((src >> n) & 1) != 0;
+    $(C_flag) = src_bit;
+}
+macro stcf(n, dst) {
+    local mask = ($(C_flag) << n);
+    dst = dst | zext(mask);
+}
 macro andcf(n, src) {
     local src_bit:1 = ((src >> n) & 1) != 0;
     local val:1 = $(C_flag) & src_bit;
@@ -411,17 +447,11 @@ macro xorcf(n, src) {
     local val:1 = $(C_flag) ^ src_bit;
     $(C_flag) = val;
 }
-macro ldcf(n, src) {
-    local src_bit:1 = ((src >> n) & 1) != 0;
-    $(C_flag) = src_bit;
-}
-macro stcf(n, dst) {
-    local mask = ($(C_flag) << n);
-    dst = dst | zext(mask);
-}
 macro bit(n, src) {
     local src_bit:1 = ((src >> n) & 1) != 0;
     $(Z_flag) = src_bit == 0;
+    $(H_flag) = 1;
+    $(N_flag) = 0;
 }
 macro res(n, dst) {
     local mask = ~(1 << n);
@@ -444,17 +474,105 @@ macro tset(n, dst) {
     set(n, dst);
 }
 
-macro ld_rep(rm, rn, step, once) {
-<top>
-    rm = rm + step; rn = rn + step; *:4 rm = *:4 rn; BC = BC - 1;
-    if (once == 1:1) goto <end>;
-    if (BC == 0) goto <end>;
-    goto <top>;
-<end>
-    $(H_flag) = 0;
-    $(V_flag) = (BC != 0);
-    $(C_flag) = 0;
+# (7) Special operations and CPU control
+macro push32(val32) {
+    XSP = XSP - 4;
+    *:4 XSP = val32;
 }
+macro push16(val16) {
+    XSP = XSP - 2;
+    *:2 XSP = val16;
+}
+macro push8(val8) {
+    XSP = XSP - 1;
+    *:1 XSP = val8;
+}
+macro pop32(ret32) {
+    ret32 = *:4 XSP;
+    XSP = XSP + 4;
+}
+macro pop16(ret16) {
+    ret16 = *:2 XSP;
+    XSP = XSP + 2;
+}
+macro pop8(ret8) {
+    ptr:2 = XSP;
+    ret8 = *:1 ptr;
+    XSP = XSP + 1;
+}
+macro link(dst, n) {
+    XSP = XSP - 4;
+    *:4 XSP = dst;
+    dst = XSP;
+    XSP = XSP + n;
+}
+macro unlk(dst) {
+    XSP = dst;
+    XSP = XSP + 4;
+    dst = *:4 XSP;
+}
+
+# (8) Rotate and shift
+macro rlc(count, reg, width) {
+	reg = (reg << count) | (reg >> (width - count));
+    setShiftFlags(reg);
+}
+macro rrc(count, reg, width) {
+    reg = (reg >> count) | (reg << (width - count));
+    setShiftFlags(reg);
+}
+macro rl(count, reg, width) {
+	reg = (reg << count) | (reg >> (width - count)) | (zext($(C_flag)) << (count - 1));
+    setShiftFlags(reg);
+}
+macro rr(count, reg, width) {
+    reg = (reg >> count) | (reg << (width - count)) | (zext($(C_flag)) << (width - count));
+    setShiftFlags(reg);
+}
+macro sla(count, reg) {
+	reg = reg << count;
+    setShiftFlags(reg);
+}
+macro sra(count, reg) {
+    reg = reg s>> count;
+    setShiftFlags(reg);
+}
+macro sll(count, reg) {
+	reg = reg << count;
+    setShiftFlags(reg);
+}
+macro srl(count, reg) {
+    reg = reg >> count;
+    setShiftFlags(reg);
+}
+macro rld(dst1, dst2) {
+    local dst1_00_03:1 = dst1:1 & 0x0f;
+    local dst1_04_07:1 = dst1:1 & 0xf0;
+    local dst2_00_03:1 = dst2:1 & 0x0f;
+    local dst2_04_07:1 = dst2:1 & 0xf0;
+    dst1 = ((dst1 >> 8) << 8) | dst1_04_07 | (dst2_04_07 >> 4);
+    dst2 = ((dst2 >> 8) << 8) | zext((dst2_00_03 << 4) | dst1_00_03);
+    $(S_flag) = (dst1 s< 0);
+    $(Z_flag) = (dst1 == 0);
+    $(H_flag) = 0;
+    $(V_flag) = (popcount(dst1) & 1:1) == 0;
+    $(N_flag) = 0;
+}
+macro rrd(dst1, dst2) {
+    local dst1_00_03:1 = dst1:1 & 0x0f;
+    local dst1_04_07:1 = dst1:1 & 0xf0;
+    local dst2_00_03:1 = dst2:1 & 0x0f;
+    local dst2_04_07:1 = dst2:1 & 0xf0;
+    dst1 = ((dst1 >> 8) << 8) | dst1_04_07 | dst2_00_03;
+    dst2 = ((dst2 >> 8) << 8) | zext((dst1_04_07 << 4) | (dst2_04_07 >> 4));
+    $(S_flag) = (dst1 s< 0);
+    $(Z_flag) = (dst1 == 0);
+    $(H_flag) = 0;
+    $(V_flag) = (popcount(dst1) & 1:1) == 0;
+    $(N_flag) = 0;
+}
+
+# Constructors
 
 addr8:      imm8  is imm8  { export *:1 imm8; }
 addr16:     imm16 is imm16 { export *:2 imm16; }
@@ -536,7 +654,7 @@ swi_n: "5" is intrs_00_03=0xd { c:1 = 5; export c; }
 swi_n: "6" is intrs_00_03=0xe { c:1 = 6; export c; }
 swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 
-# Instructions
+# Instructions, see "Appendix C: Instruction Code Maps"
 
 ## 1-byte op code instructions
 
@@ -579,7 +697,7 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :zcf         is op_00_07=0x13 { $(N_flag) = 0; $(C_flag) = ~$(Z_flag); }
 :push A      is op_00_07=0x14 & A { push16(A); }
 :pop A       is op_00_07=0x15 & A { pop16(A); }
-:ex F,^"F'"  is op_00_07=0x16 & F {}
+:ex F,^"F'"  is op_00_07=0x16 & F { F = F ^ F; }
 :ldf imm8    is op_00_07=0x17 ; imm8 {}
 :push F      is op_00_07=0x18 & F { push16(F); }
 :pop F       is op_00_07=0x19 & F { pop16(F); }
@@ -642,19 +760,19 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :divs w_rm16_00_02,imm16 is w_op_08_15=0b1011 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { divs(w_rm16_00_02,imm16); }
 :divs w_rm32_00_02,imm32 is w_op_08_15=0b1011 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { divs(w_rm32_00_02,imm32); }
 
-:link w_rm32_00_02,imm16 is w_op_08_15=0x0c     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm16 {}
-:unlk w_rm32_00_02       is w_op_08_15=0x0d     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 {}
+:link w_rm32_00_02,imm16 is w_op_08_15=0x0c     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { link(w_rm32_00_02, imm16); }
+:unlk w_rm32_00_02       is w_op_08_15=0x0d     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { unlk(w_rm32_00_02); }
 :bs1f A,w_rm16_00_02     is w_op_08_15=0x0e & A & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
 :bs1b A,w_rm16_00_02     is w_op_08_15=0x0f & A & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
 :daa w_rm8_00_02         is w_op_08_15=0x10     & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  {}
-:extz w_rm16_00_02       is w_op_08_15=0x12     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
-:extz w_rm32_00_02       is w_op_08_15=0x12     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 {}
-:exts w_rm16_00_02       is w_op_08_15=0x13     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
-:exts w_rm32_00_02       is w_op_08_15=0x13     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 {}
-:paa w_rm16_00_02        is w_op_08_15=0x14     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
-:paa w_rm32_00_02        is w_op_08_15=0x14     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 {}
+:extz w_rm16_00_02       is w_op_08_15=0x12     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { extz16(w_rm16_00_02); }
+:extz w_rm32_00_02       is w_op_08_15=0x12     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { extz32(w_rm32_00_02); }
+:exts w_rm16_00_02       is w_op_08_15=0x13     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { exts16(w_rm16_00_02); }
+:exts w_rm32_00_02       is w_op_08_15=0x13     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { exts32(w_rm32_00_02); }
+:paa w_rm16_00_02        is w_op_08_15=0x14     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { paa(w_rm16_00_02); }
+:paa w_rm32_00_02        is w_op_08_15=0x14     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { paa(w_rm32_00_02); }
 :mirr w_rm16_00_02       is w_op_08_15=0x16     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
-:mula w_rm16_00_02       is w_op_08_15=0x19     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
+:mula w_rm16_00_02       is w_op_08_15=0x19     & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { mula(w_rm16_00_02); }
 :djnz w_rm8_00_02,rel8   is w_op_08_15=0x1c     & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 ; rel8 {
     sub(w_rm8_00_02,1);
     if ($(Z_flag)) goto inst_next;
@@ -706,12 +824,12 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :tset imm8,w_rm16_00_02 is w_op_08_15=0x34 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm8 { tset(imm8,w_rm16_00_02); }
 :tset imm8,w_rm8_00_02  is w_op_08_15=0x34 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; imm8 { tset(imm8,w_rm8_00_02);  }
 
-:minc1 imm16,w_rm16_00_02 is w_op_08_15=0x38 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 {}
-:minc2 imm16,w_rm16_00_02 is w_op_08_15=0x39 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 {}
-:minc4 imm16,w_rm16_00_02 is w_op_08_15=0x3a & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 {}
-:mdec1 imm16,w_rm16_00_02 is w_op_08_15=0x3c & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 {}
-:mdec2 imm16,w_rm16_00_02 is w_op_08_15=0x3d & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 {}
-:mdec4 imm16,w_rm16_00_02 is w_op_08_15=0x3e & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 {}
+:minc1 imm16,w_rm16_00_02 is w_op_08_15=0x38 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { minc(imm16, w_rm16_00_02, 1); }
+:minc2 imm16,w_rm16_00_02 is w_op_08_15=0x39 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { minc(imm16, w_rm16_00_02, 2); }
+:minc4 imm16,w_rm16_00_02 is w_op_08_15=0x3a & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { minc(imm16, w_rm16_00_02, 4); }
+:mdec1 imm16,w_rm16_00_02 is w_op_08_15=0x3c & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { mdec(imm16, w_rm16_00_02, 1); }
+:mdec2 imm16,w_rm16_00_02 is w_op_08_15=0x3d & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { mdec(imm16, w_rm16_00_02, 2); }
+:mdec4 imm16,w_rm16_00_02 is w_op_08_15=0x3e & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { mdec(imm16, w_rm16_00_02, 4); }
 
 :mul  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { mul(w_rn8_08_10,w_rm8_00_02); }
 :mul  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { mul(w_rn16_08_10,w_rm16_00_02); }
@@ -769,8 +887,8 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :ld w_rm16_00_02,w_imm3_08_10 is w_op_12_15=0b1010 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { w_rm16_00_02 = w_imm3_08_10; }
 :ld w_rm32_00_02,w_imm3_08_10 is w_op_12_15=0b1010 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { w_rm32_00_02 = w_imm3_08_10; }
 
-:ex w_rn8_08_10,w_rm8_00_02   is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 {}
-:ex w_rn16_08_10,w_rm16_00_02 is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 {}
+:ex w_rn8_08_10,w_rm8_00_02   is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { ex(w_rn8_08_10, w_rm8_00_02); }
+:ex w_rn16_08_10,w_rm16_00_02 is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { ex(w_rn16_08_10, w_rm16_00_02); }
 
 :add w_rm8_00_02,imm8   is w_op_08_15=0xc8 & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { add(w_rm8_00_02,imm8); }
 :add w_rm16_00_02,imm16 is w_op_08_15=0xc8 & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { add(w_rm16_00_02,imm16); }
@@ -875,29 +993,29 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :lddw  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY, -1, 1); }
 :lddrw ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_02=0b1 & w_op_00_01 { ld_rep(XIX, XIY, -1, 0); }
 
-:cpi  is w_op_08_15=0x14 & w_op_04_07=0b1000 & w_op_03=0b0 & w_rm8_00_02 {}
-:cpir is w_op_08_15=0x15 & w_op_04_07=0b1000 & w_op_03=0b0 & w_rm8_00_02 {}
-:cpd  is w_op_08_15=0x16 & w_op_04_07=0b1000 & w_op_03=0b0 & w_rm8_00_02 {}
-:cpdr is w_op_08_15=0x17 & w_op_04_07=0b1000 & w_op_03=0b0 & w_rm8_00_02 {}
+:cpi  [A,(w_rm8_00_02^"+")] is w_op_08_15=0x14 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02,  1, 1); }
+:cpir [A,(w_rm8_00_02^"+")] is w_op_08_15=0x15 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02,  1, 0); }
+:cpd  [A,(w_rm8_00_02^"-")] is w_op_08_15=0x16 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02, -1, 1); }
+:cpdr [A,(w_rm8_00_02^"-")] is w_op_08_15=0x17 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02, -1, 0); }
 
-:cpiw  is w_op_08_15=0x14 & w_op_04_07=0b1001 & w_op_03=0b0 & w_rm16_00_02 {}
-:cpirw is w_op_08_15=0x15 & w_op_04_07=0b1001 & w_op_03=0b0 & w_rm16_00_02 {}
-:cpdw  is w_op_08_15=0x16 & w_op_04_07=0b1001 & w_op_03=0b0 & w_rm16_00_02 {}
-:cpdrw is w_op_08_15=0x17 & w_op_04_07=0b1001 & w_op_03=0b0 & w_rm16_00_02 {}
+:cpiw  [WA,(w_rm16_00_02^"+")] is w_op_08_15=0x14 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02,  1, 1); }
+:cpirw [WA,(w_rm16_00_02^"+")] is w_op_08_15=0x15 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02,  1, 0); }
+:cpdw  [WA,(w_rm16_00_02^"-")] is w_op_08_15=0x16 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02, -1, 1); }
+:cpdrw [WA,(w_rm16_00_02^"-")] is w_op_08_15=0x17 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02, -1, 0); }
 
 #### R,(mem)
 
 :push  (addr8m32)                is w_op_08_15=0b0100 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { push16(addr8m32); }
 :pushw (addr16m32)               is w_op_08_15=0b0100 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { push16(addr16m32); }
-:rld   A,(addr8m32)              is w_op_08_15=0b0110 & A & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 {}
-:rrd   A,(addr8m32)              is w_op_08_15=0b0111 & A & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 {}
+:rld   A,(addr8m32)              is w_op_08_15=0b0110 & A & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { rld(A, addr8m32); }
+:rrd   A,(addr8m32)              is w_op_08_15=0b0111 & A & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { rrd(A, addr8m32); }
 :ld    (addr16),(addr16m32)      is w_op_08_15=0x19 & w_op_04_07=0b1000 & w_op_03=0b0 & addr16m32 ; addr16 { addr16 = addr16m32; }
 :ldw   (addr16),(addr16m32)      is w_op_08_15=0x19 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 ; addr16 { addr16 = addr16m32; }
-:ld    w_rn8_08_10,(addr8m32)    is w_op_12_15=0b0010 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 { w_rn8_08_10 = addr8m32; }
+:ld    w_rn8_08_10,(addr8m32)    is w_op_12_15=0b0010 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { w_rn8_08_10 = addr8m32; }
 :ld    w_rn16_08_10,(addr16m32)  is w_op_12_15=0b0010 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { w_rn16_08_10 = addr16m32; }
 :ld    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0010 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { w_rn32_08_10 = addr32m32; }
-:ex    (addr8m32),w_rn8_08_10    is w_op_12_15=0b0011 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32 {}
-:ex    (addr16m32),w_rn16_08_10  is w_op_12_15=0b0011 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 {}
+:ex    (addr8m32),w_rn8_08_10    is w_op_12_15=0b0011 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { ex(addr8m32, w_rn8_08_10); }
+:ex    (addr16m32),w_rn16_08_10  is w_op_12_15=0b0011 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { ex(addr16m32, w_rn16_08_10); }
 :add   (addr8m32),imm8           is w_op_08_15=0x38 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  ; imm8  { add(addr8m32,imm8); }
 :add   (addr16m32),imm16         is w_op_08_15=0x38 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 ; imm16 { add(addr16m32,imm16); }
 :adc   (addr8m32),imm8           is w_op_08_15=0x39 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  ; imm8  { adc(addr8m32,imm8); }

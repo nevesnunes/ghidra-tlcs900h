@@ -28,19 +28,19 @@
 :divs r16b_00_07,imm16 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0b1011 ; imm16 { divs(r16b_00_07,imm16); }
 :divs r32b_00_07,imm32 is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0b1011 ; imm32 { divs(r32b_00_07,imm32); }
 
-:link r32b_00_07,imm16 is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x0c ; imm16 {}
-:unlk r32b_00_07       is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x0d {}
+:link r32b_00_07,imm16 is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x0c ; imm16 { link(r32b_00_07, imm16); }
+:unlk r32b_00_07       is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x0d { unlk(r32b_00_07); }
 :bs1f A,r16b_00_07     is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x0e & A {}
 :bs1b A,r16b_00_07     is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x0f & A {}
 :daa r8b_00_07         is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x10 {}
-:extz r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x12 {}
-:extz r32b_00_07       is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x12 {}
-:exts r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x13 {}
-:exts r32b_00_07       is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x13 {}
-:paa r16b_00_07        is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x14 {}
-:paa r32b_00_07        is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x14 {}
+:extz r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x12 { extz16(r16b_00_07); }
+:extz r32b_00_07       is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x12 { extz32(r32b_00_07); }
+:exts r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x13 { exts16(r16b_00_07); }
+:exts r32b_00_07       is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x13 { exts32(r32b_00_07); }
+:paa r16b_00_07        is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x14 { paa(r16b_00_07); }
+:paa r32b_00_07        is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x14 { paa(r32b_00_07); }
 :mirr r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x16 {}
-:mula r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x19 {}
+:mula r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x19 { mula(r16b_00_07); }
 :djnz r8b_00_07,rel8   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x1c ; rel8 {
     sub(r8b_00_07,1);
     if ($(Z_flag)) goto inst_next;
@@ -52,27 +52,27 @@
     goto rel8;
 }
 
-:andcf imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x20 ; imm8 {}
-:andcf imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x20 ; imm8 {}
-:orcf imm8,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x21 ; imm8 {}
-:orcf imm8,r16b_00_07  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x21 ; imm8 {}
-:xorcf imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x22 ; imm8 {}
-:xorcf imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x22 ; imm8 {}
-:ldcf imm8,r16b_00_07  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x23 ; imm8 {}
-:ldcf imm8,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x23 ; imm8 {}
-:stcf imm8,r16b_00_07  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x24 ; imm8 {}
-:stcf imm8,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x24 ; imm8 {}
+:andcf imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x20 ; imm8 { andcf(imm8,r8b_00_07); }
+:andcf imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x20 ; imm8 { andcf(imm8,r16b_00_07); }
+:orcf  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x21 ; imm8 { orcf (imm8,r8b_00_07); }
+:orcf  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x21 ; imm8 { orcf (imm8,r16b_00_07); }
+:xorcf imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x22 ; imm8 { xorcf(imm8,r8b_00_07); }
+:xorcf imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x22 ; imm8 { xorcf(imm8,r16b_00_07); }
+:ldcf  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x23 ; imm8 { ldcf (imm8,r16b_00_07); }
+:ldcf  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x23 ; imm8 { ldcf (imm8,r8b_00_07); }
+:stcf  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x24 ; imm8 { stcf (imm8,r16b_00_07); }
+:stcf  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x24 ; imm8 { stcf (imm8,r8b_00_07); }
 
-:andcf A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x28 & A {}
-:andcf A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x28 & A {}
-:orcf A,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x29 & A {}
-:orcf A,r16b_00_07  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x29 & A {}
-:xorcf A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2a & A {}
-:xorcf A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2a & A {}
-:ldcf A,r16b_00_07  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2b & A {}
-:ldcf A,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2b & A {}
-:stcf A,r16b_00_07  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2c & A {}
-:stcf A,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2c & A {}
+:andcf A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x28 & A { andcf(A,r8b_00_07); }
+:andcf A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x28 & A { andcf(A,r16b_00_07); }
+:orcf  A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x29 & A { orcf(A,r8b_00_07); }
+:orcf  A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x29 & A { orcf(A,r16b_00_07); }
+:xorcf A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2a & A { xorcf(A,r8b_00_07); }
+:xorcf A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2a & A { xorcf(A,r16b_00_07); }
+:ldcf  A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2b & A { ldcf(A,r16b_00_07); }
+:ldcf  A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2b & A { ldcf(A,r8b_00_07); }
+:stcf  A,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2c & A { stcf(A,r16b_00_07); }
+:stcf  A,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2c & A { stcf(A,r8b_00_07); }
 
 :ldc r8c_00_07,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x2e ; r8c_00_07  & op_06_07=0b00 { r8c_00_07 = r8b_00_07;   }
 :ldc r16c_00_07,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2e ; r16c_00_07 & op_06_07=0b00 { r16c_00_07 = r16b_00_07; }
@@ -81,23 +81,23 @@
 :ldc r16b_00_07,r16c_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x2f ; r16c_00_07 & op_06_07=0b00 { r16b_00_07 = r16c_00_07; }
 :ldc r32b_00_07,r32c_00_07 is op_00_07=0xe7 ; r32b_00_07 ; op_00_07=0x2f ; r32c_00_07 & op_06_07=0b00 { r32b_00_07 = r32c_00_07; }
 
-:res  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x30 ; imm8 {}
-:res  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x30 ; imm8 {}
-:set  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x31 ; imm8 {}
-:set  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x31 ; imm8 {}
-:chg  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x32 ; imm8 {}
-:chg  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x32 ; imm8 {}
-:bit  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x33 ; imm8 {}
-:bit  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x33 ; imm8 {}
-:tset imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x34 ; imm8 {}
-:tset imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x34 ; imm8 {}
+:res  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x30 ; imm8 { res(imm8,r8b_00_07); }
+:res  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x30 ; imm8 { res(imm8,r16b_00_07); }
+:set  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x31 ; imm8 { set(imm8,r8b_00_07); }
+:set  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x31 ; imm8 { set(imm8,r16b_00_07); }
+:chg  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x32 ; imm8 { chg(imm8,r8b_00_07); }
+:chg  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x32 ; imm8 { chg(imm8,r16b_00_07); }
+:bit  imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x33 ; imm8 { bit(imm8,r16b_00_07); }
+:bit  imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x33 ; imm8 { bit(imm8,r8b_00_07); }
+:tset imm8,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x34 ; imm8 { tset(imm8,r16b_00_07); }
+:tset imm8,r8b_00_07  is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x34 ; imm8 { tset(imm8,r8b_00_07); }
 
-:minc1 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x38 ; imm16 {}
-:minc2 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x39 ; imm16 {}
-:minc4 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3a ; imm16 {}
-:mdec1 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3c ; imm16 {}
-:mdec2 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3d ; imm16 {}
-:mdec4 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3e ; imm16 {}
+:minc1 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x38 ; imm16 { minc(imm16, r16b_00_07, 1); }
+:minc2 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x39 ; imm16 { minc(imm16, r16b_00_07, 2); }
+:minc4 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3a ; imm16 { minc(imm16, r16b_00_07, 4); }
+:mdec1 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3c ; imm16 { mdec(imm16, r16b_00_07, 1); }
+:mdec2 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3d ; imm16 { mdec(imm16, r16b_00_07, 2); }
+:mdec4 imm16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x3e ; imm16 { mdec(imm16, r16b_00_07, 4); }
 
 :mul  r8,r8b_00_07          is op_00_07=0xc7 ; r8b_00_07  ; op_04_07=0b0100 & op_03=0b0 & r8         { mul(r8,r8b_00_07); }
 :mul  r16,r16b_00_07        is op_00_07=0xd7 ; r16b_00_07 ; op_04_07=0b0100 & op_03=0b0 & r16        { mul(r16,r16b_00_07); }
@@ -155,9 +155,9 @@
 :ld r16b_00_07,imm3_00_02 is op_00_07=0xd7 ; r16b_00_07 ; op_04_07=0b1010 & op_03=0b1 & imm3_00_02 { r16b_00_07 = imm3_00_02; }
 :ld r32b_00_07,imm3_00_02 is op_00_07=0xe7 ; r32b_00_07 ; op_04_07=0b1010 & op_03=0b1 & imm3_00_02 { r32b_00_07 = imm3_00_02; }
 
-:ex r8,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_04_07=0b1011 & op_03=0b1 & r8 {}
-:ex r16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_04_07=0b1011 & op_03=0b1 & r16 {}
-:ex r32,r32b_00_07 is op_00_07=0xe7 ; r32b_00_07 ; op_04_07=0b1011 & op_03=0b1 & r32 {}
+:ex r8,r8b_00_07   is op_00_07=0xc7 ; r8b_00_07  ; op_04_07=0b1011 & op_03=0b1 & r8  { ex(r8, r8b_00_07); }
+:ex r16,r16b_00_07 is op_00_07=0xd7 ; r16b_00_07 ; op_04_07=0b1011 & op_03=0b1 & r16 { ex(r16, r16b_00_07); }
+:ex r32,r32b_00_07 is op_00_07=0xe7 ; r32b_00_07 ; op_04_07=0b1011 & op_03=0b1 & r32 { ex(r32, r32b_00_07); }
 
 :add r8b_00_07,imm8   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0xc8 ; imm8  { add(r8b_00_07,imm8); }
 :add r16b_00_07,imm16 is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0xc8 ; imm16 { add(r16b_00_07,imm16); }
