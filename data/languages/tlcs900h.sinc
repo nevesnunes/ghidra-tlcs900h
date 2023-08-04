@@ -679,8 +679,18 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :push imm8         is op_00_07=0x09 ; imm8 { local tmp:1 = imm8; push8(tmp); }
 :ldw (addr8),imm16 is op_00_07=0x0a ; addr8 ; imm16 { addr8 = imm16; }
 :pushw imm16       is op_00_07=0x0b ; imm16 { local tmp:2 = imm16; push16(tmp); }
-:incf              is op_00_07=0x0c {}
-:decf              is op_00_07=0x0d {}
+:incf              is op_00_07=0x0c { 
+    $(RFP) = $(RFP) + 1;
+    if ($(MAX) == 0) goto <end>;
+    $(RFP) = $(RFP) & 0b011;
+<end>
+}
+:decf              is op_00_07=0x0d {
+    $(RFP) = $(RFP) - 1;
+    if ($(MAX) == 0) goto <end>;
+    $(RFP) = $(RFP) & 0b011;
+<end>
+}
 :ret               is op_00_07=0x0e {
     pop32(PC);
     return [PC];
@@ -698,7 +708,12 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :push A      is op_00_07=0x14 & A { push16(A); }
 :pop A       is op_00_07=0x15 & A { pop16(A); }
 :ex F,^"F'"  is op_00_07=0x16 & F { F = F ^ F; }
-:ldf imm8    is op_00_07=0x17 ; imm8 {}
+:ldf imm8    is op_00_07=0x17 ; imm8 {
+    $(RFP) = imm8 & 0b111;
+    if ($(MAX) == 0) goto <end>;
+    $(RFP) = $(RFP) & 0b011;
+<end>
+}
 :push F      is op_00_07=0x18 & F { push16(F); }
 :pop F       is op_00_07=0x19 & F { pop16(F); }
 :jp addr16   is op_00_07=0x1a; addr16 { goto addr16; }

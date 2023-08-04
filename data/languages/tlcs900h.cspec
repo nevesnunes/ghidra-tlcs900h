@@ -10,10 +10,7 @@
   <stackpointer register="XSP" space="ram"/>
 
   <default_proto>
-      <prototype
-        extrapop="0"
-        stackshift="0"
-        name="__stdcall">
+      <prototype extrapop="unknown" stackshift="0" name="default">
       <!--
             Notes:
               - extrapop: bytes popped from the stack pointer across a call
@@ -46,10 +43,11 @@
         <register name="XIY"/>
         <register name="XIZ"/>
         <register name="XSP"/>
+        <!--
         <register name="PC"/>
         <register name="SR"/>
+        -->
       </unaffected>
-
     </prototype>
   </default_proto>
 

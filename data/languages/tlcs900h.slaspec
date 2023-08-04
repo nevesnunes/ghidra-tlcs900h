@@ -3,12 +3,12 @@
 define endian=little;
 define alignment=1;
 define space ram type=ram_space size=4 default;
-define space register type=register_space size=4;
+define space register type=register_space size=1;
 
 # Current bank
-define register offset=0x00 size=4 [ XWA XBC XDE XHL XIX XIY XIZ XSP PC SR ];
+define register offset=0x00 size=4 [ XWA XBC XDE XHL XIX XIY XIZ XSP PC ];
 define register offset=0x00 size=2 [ WA _ BC _ DE _ HL _ IX _ IY _ IZ _ SP _ ];
-define register offset=0x00 size=1 [ W A _ _ B C _ _ D E _ _ H L _ _ F ];
+define register offset=0x00 size=1 [ W A _ _ B C _ _ D E _ _ H L _ _ ];
 define register offset=0x40 size=2 [ RWA QWA RBC QBC RDE QDE RHL QHL RIX QIX RIY QIY RIZ QIZ RSP QSP ];
 define register offset=0x40 size=1 [ _ _ QA QW _ _ QC QB _ _ QE QD _ _ QL QH IXL IXH QIXL QIXH IYL IYH QIYL QIYH IZL IZH QIZL QIZH SPL SPH QSPL QSPH ];
 # Previous bank
@@ -34,13 +34,21 @@ define register offset=0xe0 size=2 [ DMAC0 DMAC1 DMAC2 DMAC3 ];
 define register offset=0xf0 size=1 [ DMAM0 DMAM1 DMAM2 DMAM3 ];
 define register offset=0xf8 size=4 [ XNSP ];
 define register offset=0xf8 size=2 [ NSP _ ];
+# Status Register
+define register offset=0xfc size=2 [ SR ];
+define register offset=0xfc size=1 [ _ F ];
 
 # Flag bits
-@define C_flag "F[0,1]" # C: Carry
-@define N_flag "F[1,1]" # N: Add/Subtract
-@define V_flag "F[2,1]" # V: Parity/Overflow
-@define H_flag "F[4,1]" # H: Half Carry
-@define Z_flag "F[6,1]" # Z: Zero
-@define S_flag "F[7,1]" # S: Sign
+@define C_flag "F[0,1]" # Carry
+@define N_flag "F[1,1]" # Add/Subtract
+@define V_flag "F[2,1]" # Parity/Overflow
+@define H_flag "F[4,1]" # Half Carry
+@define Z_flag "F[6,1]" # Zero
+@define S_flag "F[7,1]" # Sign
+
+@define RFP  "SR[8,3]"  # File Pointer
+@define MAX  "SR[11,1]" # Maximum Mode
+@define IFF  "SR[12,3]" # Mask
+@define SYSM "SR[15,1]" # System Mode
 
 @include "tlcs900h.sinc"
