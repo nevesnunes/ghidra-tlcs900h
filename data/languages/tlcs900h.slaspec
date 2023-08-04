@@ -36,9 +36,9 @@ define register offset=0xf8 size=4 [ XNSP ];
 define register offset=0xf8 size=2 [ NSP _ ];
 # Status Register
 define register offset=0xfc size=2 [ SR ];
+# Flag Register
 define register offset=0xfc size=1 [ _ F ];
 
-# Flag bits
 @define C_flag "F[0,1]" # Carry
 @define N_flag "F[1,1]" # Add/Subtract
 @define V_flag "F[2,1]" # Parity/Overflow

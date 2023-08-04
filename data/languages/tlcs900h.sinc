@@ -590,12 +590,13 @@ addr24i8:   imm24 is imm24 { export *:1 imm24; }
 addr24i16:  imm24 is imm24 { export *:2 imm24; }
 addr24i24:  imm24 is imm24 { export *:3 imm24; }
 addr24i32:  imm24 is imm24 { export *:4 imm24; }
-addr8d32:   w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:1 = *:1 (w_rm32_00_02 + w_imm8_08_15); export tmp; }
-addr16d32:  w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:2 = *:2 (w_rm32_00_02 + w_imm8_08_15); export tmp; }
-addr32d32:  w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = *:4 (w_rm32_00_02 + w_imm8_08_15); export tmp; }
 addr8m32:   w_rm32_00_02 is w_rm32_00_02 { export *:1 w_rm32_00_02; }
 addr16m32:  w_rm32_00_02 is w_rm32_00_02 { export *:2 w_rm32_00_02; }
 addr32m32:  w_rm32_00_02 is w_rm32_00_02 { export *:4 w_rm32_00_02; }
+r32d8:      w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = (w_rm32_00_02 + w_imm8_08_15); export tmp; }
+addr8d32:   r32d8 is r32d8 { export *:1 r32d8; }
+addr16d32:  r32d8 is r32d8 { export *:2 r32d8; }
+addr32d32:  r32d8 is r32d8 { export *:4 r32d8; }
 
 # Direct + increment/decrement memory addressing modes
 r32b_mem: r32b_02_07     is op_06=0b1 & op_00_03=0b0011 ; r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
@@ -604,9 +605,9 @@ r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01 
 r32b_eam: r32b_mem is r32b_mem { export *:4 r32b_mem; }
 
 # Displacement + register offset memory addressing modes
-r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp:4 = *:4 (l_r32b_02_07 + l_imm16_08_23); export tmp; }
-r32b_dsp: l_r32b_08_15^"+"^l_r8b_16_23   is l_op_00_07=0b011 & l_r32b_08_15 & l_r8b_16_23  { tmp:4 = *:4 (l_r32b_08_15 + zext(l_r8b_16_23)); export tmp; }
-r32b_dsp: l_r32b_08_15^"+"^l_r16b_16_23  is l_op_00_07=0b111 & l_r32b_08_15 & l_r16b_16_23 { tmp:4 = *:4 (l_r32b_08_15 + zext(l_r16b_16_23)); export tmp; }
+r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp = *:4 (l_r32b_02_07 + l_imm16_08_23); export tmp; }
+r32b_dsp: l_r32b_08_15^"+"^l_r8b_16_23   is l_op_00_07=0b011 & l_r32b_08_15 & l_r8b_16_23  { tmp = *:4 (l_r32b_08_15 + zext(l_r8b_16_23)); export tmp; }
+r32b_dsp: l_r32b_08_15^"+"^l_r16b_16_23  is l_op_00_07=0b111 & l_r32b_08_15 & l_r16b_16_23 { tmp = *:4 (l_r32b_08_15 + zext(l_r16b_16_23)); export tmp; }
 r32b_ead: r32b_dsp is r32b_dsp { export *:4 r32b_dsp; }
 
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
@@ -1145,8 +1146,8 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :ld   (addr8m32),(addr16i8)     is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32  & w_op_08_15=0b00010100 ; addr16i8  { addr8m32  = addr16i8; }
 :ldw  (addr16m32),(addr16i16)   is w_op_04_07=0b1011 & w_op_03=0b0 & addr16m32 & w_op_08_15=0b00010110 ; addr16i16 { addr16m32 = addr16i16; }
 
-:lda w_rm16_00_02,w_rn32_08_10  is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm16_00_02 & w_op_12_15=0b0010 & w_op_11=0b0 & w_rn32_08_10 { local tmp:4 = w_rn32_08_10 & 0xffff; w_rm16_00_02 = tmp:2; }
-:lda w_rm32_00_02,w_rn32_08_10  is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b0011 & w_op_11=0b0 & w_rn32_08_10 { w_rm32_00_02 = w_rn32_08_10; }
+:lda w_rn16_08_10,w_rm32_00_02  is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b0010 & w_op_11=0b0 & w_rn16_08_10 { local tmp:4 = w_rm32_00_02 & 0xffff; w_rn16_08_10 = tmp:2; }
+:lda w_rn32_08_10,w_rm32_00_02  is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b0011 & w_op_11=0b0 & w_rn32_08_10 { w_rn32_08_10 = w_rm32_00_02; }
 :ld (w_rm32_00_02),w_rn8_08_10  is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b0100 & w_op_11=0b0 & w_rn8_08_10  { w_rm32_00_02 = zext(w_rn8_08_10); }
 :ld (w_rm32_00_02),w_rn16_08_10 is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b0101 & w_op_11=0b0 & w_rn16_08_10 { w_rm32_00_02 = zext(w_rn16_08_10); }
 :ld (w_rm32_00_02),w_rn32_08_10 is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b0110 & w_op_11=0b0 & w_rn32_08_10 { w_rm32_00_02 = w_rn32_08_10; }

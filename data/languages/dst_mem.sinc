@@ -7,8 +7,8 @@
 :ld (addr8d32),(addr16i8)   is w_op_04_07=0b1011 & w_op_03=0b1 & addr8d32  ; op_00_07=0b00010100 ; addr16i8 { addr8d32 = addr16i8; }
 :ld (addr16d32),(addr16i16) is w_op_04_07=0b1011 & w_op_03=0b1 & addr16d32 ; op_00_07=0b00010110 ; addr16i16 { addr16d32 = addr16i16; }
 
-:lda r16,addr16d32      is w_op_04_07=0b1011 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = addr16d32; }
-:lda r32,addr32d32      is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = addr32d32; }
+:lda r16,r32d8          is w_op_04_07=0b1011 & w_op_03=0b1 & r32d8 ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32d8:2; }
+:lda r32,r32d8          is w_op_04_07=0b1011 & w_op_03=0b1 & r32d8 ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32d8; }
 :ld (addr8d32),r8       is w_op_04_07=0b1011 & w_op_03=0b1 & addr8d32  ; op_04_07=0b0100 & op_03=0b0 & r8 { addr8d32 = r8; }
 :ld (addr16d32),r16     is w_op_04_07=0b1011 & w_op_03=0b1 & addr16d32 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr16d32 = r16; }
 :ld (addr32d32),r32     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr32d32 = r32; }
@@ -53,8 +53,8 @@
 :ld (addr8i8),(addr16i8)   is op_00_07=0xf0 ; addr8i8  ; op_00_07=0b00010100 ; addr16i8 { addr8i8 = addr16i8; }
 :ld (addr8i16),(addr16i16) is op_00_07=0xf0 ; addr8i16 ; op_00_07=0b00010110 ; addr16i16 { addr8i16 = addr16i16; }
 
-:lda r16,addr8i16      is op_00_07=0xf0 ; addr8i16 ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = addr8i16; }
-:lda r32,addr8i32      is op_00_07=0xf0 ; addr8i32 ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = addr8i32; }
+:lda r16,imm8          is op_00_07=0xf0 ; imm8     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm8; }
+:lda r32,imm8          is op_00_07=0xf0 ; imm8     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm8; }
 :ld (addr8i8),r8       is op_00_07=0xf0 ; addr8i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr8i8 = r8; }
 :ld (addr8i16),r16     is op_00_07=0xf0 ; addr8i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr8i16 = r16; }
 :ld (addr8i32),r32     is op_00_07=0xf0 ; addr8i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr8i32 = r32; }
@@ -99,8 +99,8 @@
 :ld (addr16i8),(addr_16i8)   is op_00_07=0xf1 ; addr16i8  ; op_00_07=0b00010100 ; addr_16i8 { addr16i8 = addr_16i8; }
 :ld (addr16i16),(addr_16i16) is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00010110 ; addr_16i16 { addr16i16 = addr_16i16; }
 
-:lda r16,addr16i16       is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = addr16i16; }
-:lda r32,addr16i32       is op_00_07=0xf1 ; addr16i32 ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = addr16i32; }
+:lda r16,imm16        is op_00_07=0xf1 ; imm16  ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm16; }
+:lda r32,imm16        is op_00_07=0xf1 ; imm16  ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm16; }
 :ld (addr16),r8       is op_00_07=0xf1 ; addr16 ; op_04_07=0b0100 & op_03=0b0 & r8  { addr16 = zext(r8); }
 :ld (addr16),r16      is op_00_07=0xf1 ; addr16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr16 = r16; }
 :ld (addr16),r32      is op_00_07=0xf1 ; addr16 ; op_04_07=0b0110 & op_03=0b0 & r32 { local tmp = r32 & 0xffff; addr16 = tmp:2; }
@@ -145,8 +145,8 @@
 :ld (addr24i8),(addr16i8)   is op_00_07=0xf2 ; addr24i8  ; op_00_07=0b00010100 ; addr16i8 { addr24i8 = addr16i8; }
 :ld (addr24i16),(addr16i16) is op_00_07=0xf2 ; addr24i16 ; op_00_07=0b00010110 ; addr16i16 { addr24i16 = addr16i16; }
 
-:lda r16,addr24i16       is op_00_07=0xf2 ; addr24i16 ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = addr24i16; }
-:lda r32,addr24i32       is op_00_07=0xf2 ; addr24i32 ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = addr24i32; }
+:lda r16,imm24           is op_00_07=0xf2 ; imm24     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm24; }
+:lda r32,imm24           is op_00_07=0xf2 ; imm24     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm24; }
 :ld (addr24i8),r8        is op_00_07=0xf2 ; addr24i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr24i8 = r8; }
 :ld (addr24i16),r16      is op_00_07=0xf2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr24i16 = r16; }
 :ld (addr24i32),r32      is op_00_07=0xf2 ; addr24i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr24i32 = r32; }

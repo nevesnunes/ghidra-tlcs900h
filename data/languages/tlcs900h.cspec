@@ -11,27 +11,6 @@
 
   <default_proto>
       <prototype extrapop="unknown" stackshift="0" name="default">
-      <!--
-            Notes:
-              - extrapop: bytes popped from the stack pointer across a call
-              - stackshift: bytes popped from the stack across a call
-              - see ghidra.git/Ghidra/Features/Decompiler/src/main/doc/cpsec.xml
-      -->
-	<!-- 
-      <input>
-        <pentry minsize="1" maxsize="4">
-          <register name="r1"/>
-        </pentry>
-        <pentry minsize="1" maxsize="4">
-          <register name="r2"/>
-        </pentry>
-      </input>
-      <output>
-        <pentry minsize="1" maxsize="4">
-          <register name="r0"/>
-        </pentry>
-     </output>
-	-->
 	  <input />
 	  <output />
       <unaffected>
