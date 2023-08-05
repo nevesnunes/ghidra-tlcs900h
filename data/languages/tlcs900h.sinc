@@ -242,19 +242,14 @@ macro setResultFlags(result) {
     $(S_flag) = (result s< 0);
     $(Z_flag) = (result == 0);
 }
-macro setAddCarryFlags(op1,op2) {
-    $(C_flag) = (carry(op1,zext($(C_flag))) || carry(op2,op1 + zext($(C_flag))));
-}
-macro setAddFlags(op1,op2) {
-    $(C_flag) = carry(op1,op2);
-}
-macro setSubtractCarryFlags(op1,op2) {
-    notC = ~$(C_flag);
-    $(C_flag) = ((op1 < sext(notC)) || (op2 < (op1 - sext(notC))));
+macro setAddFlags(sum, op1, op2) {
+    $(H_flag) = (((op1 ^ op2 ^ sum) >> 4) & 1) != 0;
+    $(V_flag) = ((op1 ^ sum) & (op2 ^ sum)) s< 0;
+    $(N_flag) = 0;
 }
 macro setSubtractFlags(op1,op2) {
-    $(C_flag) = (op1 < op2);
     $(N_flag) = 1;
+    $(C_flag) = (op1 < op2);
 }
 macro setShiftFlags(result) {
     setResultFlags(result);
@@ -263,8 +258,7 @@ macro setShiftFlags(result) {
     $(N_flag) = 0;
     $(C_flag) = (result s< 0);
 }
-macro setOrFlags(result) {
-    $(H_flag) = 0;
+macro setLogicalFlags(result) {
     $(V_flag) = (popcount(result) & 1:1) == 0;
     $(N_flag) = 0;
     $(C_flag) = 0;
@@ -283,16 +277,17 @@ macro add(op1, op2) {
     local tmp_op2 = op2;
     op1 = op1 + op2;
     setResultFlags(op1);
-	setAddFlags(tmp_op1, tmp_op2);
+	setAddFlags(op1, tmp_op1, tmp_op2);
+    $(C_flag) = carry(op1,op2);
 }
 macro adc(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     local tmp_C = $(C_flag);
-	setAddCarryFlags(tmp_op1, tmp_op2);
-    op1 = op1 + op2;
+    op1 = op1 + op2 + zext(tmp_C);
     setResultFlags(op1);
-	setAddFlags(tmp_op1, tmp_op2);
+	setAddFlags(op1, tmp_op1, tmp_op2);
+    $(C_flag) = (carry(tmp_op1, zext(tmp_C)) || carry(tmp_op2, tmp_op1 + zext(tmp_C)));
 }
 macro sub(op1, op2) {
     local tmp_op1 = op1;
@@ -305,10 +300,11 @@ macro sbc(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     local tmp_C = $(C_flag);
-	setSubtractCarryFlags(tmp_op1, tmp_op2);
     op1 = op1 - op2;
-	setSubtractFlags(tmp_op1, tmp_op2);
     setResultFlags(op1);
+	setSubtractFlags(tmp_op1, tmp_op2);
+    not_C = ~tmp_C;
+    $(C_flag) = ((tmp_op1 < sext(not_C)) || (tmp_op2 < (tmp_op1 - sext(not_C))));
 }
 macro cp(op1, op2) {
     local tmp = op1 - op2;
@@ -406,16 +402,20 @@ macro cp_rep(rm, rn, step, once) {
 macro and(op1, op2) {
     op1 = op1 & op2;
     setResultFlags(op1);
+    setLogicalFlags(op1);
+    $(H_flag) = 1;
 }
 macro or(op1, op2) {
     op1 = op1 | op2;
     setResultFlags(op1);
-    setOrFlags(op1);
+    setLogicalFlags(op1);
+    $(H_flag) = 0;
 }
 macro xor(op1, op2) {
     op1 = op1 ^ op2;
     setResultFlags(op1);
-    setOrFlags(op1);
+    setLogicalFlags(op1);
+    $(H_flag) = 0;
 }
 macro cpl(op1) {
     op1 = ~op1;
@@ -517,7 +517,7 @@ macro switch_bank(i) {
     if ($(MAX) == 0) goto <prev_ld>;
     $(RFP) = $(RFP) & 0b011;
 
-# To simplify register updates, we only synchronize 
+# To simplify register updates, we only synchronize
 # the current and previous banks when switching to another bank.
 <prev_ld>
     XWA_P = XWA; XBC_P = XBC; XDE_P = XDE; XHL_P = XHL;
