@@ -42,13 +42,13 @@
 :mirr r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x16 {}
 :mula r16b_00_07       is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x19 { mula(r16b_00_07); }
 :djnz r8b_00_07,rel8   is op_00_07=0xc7 ; r8b_00_07  ; op_00_07=0x1c ; rel8 {
-    sub(r8b_00_07,1);
-    if ($(Z_flag)) goto inst_next;
+    r8b_00_07 = r8b_00_07 - 1;
+    if (r8b_00_07 == 0) goto inst_next;
     goto rel8;
 }
 :djnz r16b_00_07,rel8  is op_00_07=0xd7 ; r16b_00_07 ; op_00_07=0x1c ; rel8 {
-    sub(r16b_00_07,1);
-    if ($(Z_flag)) goto inst_next;
+    r16b_00_07 = r16b_00_07 - 1;
+    if (r16b_00_07 == 0) goto inst_next;
     goto rel8;
 }
 
