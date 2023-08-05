@@ -29,9 +29,9 @@ define register offset=0xc0 size=4 [ XWA_3 XBC_3 XDE_3 XHL_3 ];
 define register offset=0xc0 size=2 [ RWA_3 QWA_3 RBC_3 QBC_3 RDE_3 QDE_3 RHL_3 QHL_3 ];
 define register offset=0xc0 size=1 [ RA_3 RW_3 QA_3 QW_3 RC_3 RB_3 QC_3 QB_3 RE_3 RD_3 QE_3 QD_3 RL_3 RH_3 QL_3 QH_3 ];
 # Control Registers
-define register offset=0xd0 size=4 [ DMAS0 DMAS1 DMAS2 DMAS3 DMAD0 DMAD1 DMAD2 DMAD3 ];
-define register offset=0xe0 size=2 [ DMAC0 DMAC1 DMAC2 DMAC3 ];
-define register offset=0xf0 size=1 [ DMAM0 DMAM1 DMAM2 DMAM3 ];
+define register offset=0xd0 size=4 [ DMAS_0 DMAS_1 DMAS_2 DMAS_3 DMAD_0 DMAD_1 DMAD_2 DMAD_3 ];
+define register offset=0xe0 size=2 [ DMAC_0 DMAC_1 DMAC_2 DMAC_3 ];
+define register offset=0xf0 size=1 [ DMAM_0 DMAM_1 DMAM_2 DMAM_3 ];
 define register offset=0xf8 size=4 [ XNSP ];
 define register offset=0xf8 size=2 [ NSP _ ];
 # Status Register

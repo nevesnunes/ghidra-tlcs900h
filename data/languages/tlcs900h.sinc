@@ -181,58 +181,58 @@ attach variables [ r32b_02_07 l_r32b_02_07 ] [
 
 # Control registers
 attach variables [ r32c_00_07 ] [
-    DMAS0 _ _ _
-    DMAS1 _ _ _
-    DMAS2 _ _ _
-    DMAS3 _ _ _
-    DMAD0 _ _ _
-    DMAD1 _ _ _
-    DMAD2 _ _ _
-    DMAD3 _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    XNSP  _ _ _
+    DMAS_0 _ _ _
+    DMAS_1 _ _ _
+    DMAS_2 _ _ _
+    DMAS_3 _ _ _
+    DMAD_0 _ _ _
+    DMAD_1 _ _ _
+    DMAD_2 _ _ _
+    DMAD_3 _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    XNSP   _ _ _
 ];
 attach variables [ r16c_00_07 ] [
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    DMAC0 _ _ _
-    DMAC1 _ _ _
-    DMAC2 _ _ _
-    DMAC3 _ _ _
-    _     _ _ _
-    _     _ _ _
-    _     _ _ _
-    NSP   _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    DMAC_0 _ _ _
+    DMAC_1 _ _ _
+    DMAC_2 _ _ _
+    DMAC_3 _ _ _
+    _      _ _ _
+    _      _ _ _
+    _      _ _ _
+    NSP    _ _ _
 ];
 attach variables [ r8c_00_07 ] [
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ DMAM0 _
-    _ _ DMAM1 _
-    _ _ DMAM2 _
-    _ _ DMAM3 _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
-    _ _ _     _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ DMAM_0 _
+    _ _ DMAM_1 _
+    _ _ DMAM_2 _
+    _ _ DMAM_3 _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
+    _ _ _      _
 ];
 
 # Macros, see "Appendix B: Instruction Lists"
@@ -511,6 +511,47 @@ macro unlk(dst) {
     XSP = XSP + 4;
     dst = *:4 XSP;
 }
+macro switch_bank(i) {
+    local prev_rfp = $(RFP);
+    $(RFP) = i & 0b111;
+    if ($(MAX) == 0) goto <prev_ld>;
+    $(RFP) = $(RFP) & 0b011;
+
+# To simplify register updates, we only synchronize 
+# the current and previous banks when switching to another bank.
+<prev_ld>
+    XWA_P = XWA; XBC_P = XBC; XDE_P = XDE; XHL_P = XHL;
+
+    if (prev_rfp == 1) goto <prev_st1>;
+    if (prev_rfp == 2) goto <prev_st2>;
+    if (prev_rfp == 3) goto <prev_st3>;
+    XWA_0 = XWA; XBC_0 = XBC; XDE_0 = XDE; XHL_0 = XHL;
+    goto <prev_end>;
+<prev_st1>
+    XWA_1 = XWA; XBC_1 = XBC; XDE_1 = XDE; XHL_1 = XHL;
+    goto <prev_end>;
+<prev_st2>
+    XWA_2 = XWA; XBC_2 = XBC; XDE_2 = XDE; XHL_2 = XHL;
+    goto <prev_end>;
+<prev_st3>
+    XWA_3 = XWA; XBC_3 = XBC; XDE_3 = XDE; XHL_3 = XHL;
+<prev_end>
+
+    if ($(RFP) == 1) goto <ld1>;
+    if ($(RFP) == 2) goto <ld2>;
+    if ($(RFP) == 3) goto <ld3>;
+    XWA = XWA_0; XBC = XBC_0; XDE = XDE_0; XHL = XHL_0;
+    goto <end>;
+<ld1>
+    XWA = XWA_1; XBC = XBC_1; XDE = XDE_1; XHL = XHL_1;
+    goto <end>;
+<ld2>
+    XWA = XWA_2; XBC = XBC_2; XDE = XDE_2; XHL = XHL_2;
+    goto <end>;
+<ld3>
+    XWA = XWA_3; XBC = XBC_3; XDE = XDE_3; XHL = XHL_3;
+<end>
+}
 
 # (8) Rotate and shift
 macro rlc(count, reg, width) {
@@ -600,8 +641,8 @@ addr32d32:  r32d8 is r32d8 { export *:4 r32d8; }
 
 # Direct + increment/decrement memory addressing modes
 r32b_mem: r32b_02_07     is op_06=0b1 & op_00_03=0b0011 ; r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
-r32b_mem: "-"^r32b_02_07 is op_06=0b1 & op_00_03=0b0100 ; r32b_02_07 & op_00_01      { r32b_02_07 = r32b_02_07 - (op_00_01 << 1); export r32b_02_07; }
-r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01      { tmp = r32b_02_07; r32b_02_07 = r32b_02_07 + (op_00_01 << 1); export tmp; }
+r32b_mem: "-"^r32b_02_07 is op_06=0b1 & op_00_03=0b0100 ; r32b_02_07 & op_00_01      { r32b_02_07 = r32b_02_07 - (1 << op_00_01); export r32b_02_07; }
+r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01      { tmp = r32b_02_07; r32b_02_07 = r32b_02_07 + (1 << op_00_01); export tmp; }
 r32b_eam: r32b_mem is r32b_mem { export *:4 r32b_mem; }
 
 # Displacement + register offset memory addressing modes
@@ -680,18 +721,8 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :push imm8         is op_00_07=0x09 ; imm8 { local tmp:1 = imm8; push8(tmp); }
 :ldw (addr8),imm16 is op_00_07=0x0a ; addr8 ; imm16 { addr8 = imm16; }
 :pushw imm16       is op_00_07=0x0b ; imm16 { local tmp:2 = imm16; push16(tmp); }
-:incf              is op_00_07=0x0c {
-    $(RFP) = $(RFP) + 1;
-    if ($(MAX) == 0) goto <end>;
-    $(RFP) = $(RFP) & 0b011;
-<end>
-}
-:decf              is op_00_07=0x0d {
-    $(RFP) = $(RFP) - 1;
-    if ($(MAX) == 0) goto <end>;
-    $(RFP) = $(RFP) & 0b011;
-<end>
-}
+:incf              is op_00_07=0x0c { switch_bank($(RFP) + 1); }
+:decf              is op_00_07=0x0d { switch_bank($(RFP) - 1); }
 :ret               is op_00_07=0x0e {
     pop32(PC);
     return [PC];
@@ -709,12 +740,7 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :push A      is op_00_07=0x14 & A { push16(A); }
 :pop A       is op_00_07=0x15 & A { pop16(A); }
 :ex F,^"F'"  is op_00_07=0x16 & F { F = F ^ F; }
-:ldf imm8    is op_00_07=0x17 ; imm8 {
-    $(RFP) = imm8 & 0b111;
-    if ($(MAX) == 0) goto <end>;
-    $(RFP) = $(RFP) & 0b011;
-<end>
-}
+:ldf imm8    is op_00_07=0x17 ; imm8 { switch_bank(imm8); }
 :push F      is op_00_07=0x18 & F { push16(F); }
 :pop F       is op_00_07=0x19 & F { pop16(F); }
 :jp addr16   is op_00_07=0x1a; addr16 { goto addr16; }
