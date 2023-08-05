@@ -646,9 +646,9 @@ r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01 
 r32b_eam: r32b_mem is r32b_mem { export *:4 r32b_mem; }
 
 # Displacement + register offset memory addressing modes
-r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp = *:4 (l_r32b_02_07 + l_imm16_08_23); export tmp; }
-r32b_dsp: l_r32b_08_15^"+"^l_r8b_16_23   is l_op_00_07=0b011 & l_r32b_08_15 & l_r8b_16_23  { tmp = *:4 (l_r32b_08_15 + zext(l_r8b_16_23)); export tmp; }
-r32b_dsp: l_r32b_08_15^"+"^l_r16b_16_23  is l_op_00_07=0b111 & l_r32b_08_15 & l_r16b_16_23 { tmp = *:4 (l_r32b_08_15 + zext(l_r16b_16_23)); export tmp; }
+r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp:4 = (l_r32b_02_07 + l_imm16_08_23); export tmp; }
+r32b_dsp: l_r32b_08_15^"+"^l_r8b_16_23   is l_op_00_07=0b011 & l_r32b_08_15 & l_r8b_16_23  { tmp:4 = (l_r32b_08_15 + zext(l_r8b_16_23)); export tmp; }
+r32b_dsp: l_r32b_08_15^"+"^l_r16b_16_23  is l_op_00_07=0b111 & l_r32b_08_15 & l_r16b_16_23 { tmp:4 = (l_r32b_08_15 + zext(l_r16b_16_23)); export tmp; }
 r32b_ead: r32b_dsp is r32b_dsp { export *:4 r32b_dsp; }
 
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
@@ -1195,11 +1195,11 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :chg   w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1100 & w_op_11=0b0 & w_imm3_08_10 { chg(w_imm3_08_10,addr8m32); }
 :bit   w_imm3_08_10,(addr8m32) is w_op_04_07=0b1011 & w_op_03=0b0 & addr8m32 & w_op_12_15=0b1100 & w_op_11=0b1 & w_imm3_08_10 { bit(w_imm3_08_10,addr8m32); }
 
-:jp w_cc,addr32m32   is w_op_04_07=0b1011 & w_op_03=0b0 & addr32m32 & w_op_12_15=0b1101 & w_cc & w_flags_08_11 { if (!w_cc) goto inst_next; goto [addr32m32]; }
-:call w_cc,addr32m32 is w_op_04_07=0b1011 & w_op_03=0b0 & addr32m32 & w_op_12_15=0b1110 & w_cc & w_flags_08_11 {
+:jp w_cc,w_rm32_00_02   is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b1101 & w_cc & w_flags_08_11 { if (!w_cc) goto inst_next; goto [w_rm32_00_02]; }
+:call w_cc,w_rm32_00_02 is w_op_04_07=0b1011 & w_op_03=0b0 & w_rm32_00_02 & w_op_12_15=0b1110 & w_cc & w_flags_08_11 {
     if (!w_cc) goto inst_next;
     push32(&:4 inst_next);
-    call [addr32m32];
+    call [w_rm32_00_02];
 }
 :ret cc is op_04_07=0b1011 & op_03=0b0 & op_00_02; op_04_07=0b1111 & cc & flags_00_03 {
     if (!cc) goto inst_next;
