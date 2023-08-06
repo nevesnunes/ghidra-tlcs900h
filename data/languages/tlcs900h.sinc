@@ -256,7 +256,6 @@ macro setShiftFlags(result) {
     $(H_flag) = 0;
     $(V_flag) = (popcount(result) & 1:1) == 0;
     $(N_flag) = 0;
-    $(C_flag) = (result s< 0);
 }
 macro setLogicalFlags(result) {
     $(V_flag) = (popcount(result) & 1:1) == 0;
@@ -277,7 +276,7 @@ macro add(op1, op2) {
     local tmp_op2 = op2;
     op1 = op1 + op2;
     setResultFlags(op1);
-	setAddFlags(op1, tmp_op1, tmp_op2);
+    setAddFlags(op1, tmp_op1, tmp_op2);
     $(C_flag) = carry(op1,op2);
 }
 macro adc(op1, op2) {
@@ -286,14 +285,14 @@ macro adc(op1, op2) {
     local tmp_C = $(C_flag);
     op1 = op1 + op2 + zext(tmp_C);
     setResultFlags(op1);
-	setAddFlags(op1, tmp_op1, tmp_op2);
+    setAddFlags(op1, tmp_op1, tmp_op2);
     $(C_flag) = (carry(tmp_op1, zext(tmp_C)) || carry(tmp_op2, tmp_op1 + zext(tmp_C)));
 }
 macro sub(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     op1 = op1 - op2;
-	setSubtractFlags(tmp_op1, tmp_op2);
+    setSubtractFlags(tmp_op1, tmp_op2);
     setResultFlags(op1);
 }
 macro sbc(op1, op2) {
@@ -302,7 +301,7 @@ macro sbc(op1, op2) {
     local tmp_C = $(C_flag);
     op1 = op1 - op2;
     setResultFlags(op1);
-	setSubtractFlags(tmp_op1, tmp_op2);
+    setSubtractFlags(tmp_op1, tmp_op2);
     not_C = ~tmp_C;
     $(C_flag) = ((tmp_op1 < sext(not_C)) || (tmp_op2 < (tmp_op1 - sext(not_C))));
 }
@@ -312,10 +311,18 @@ macro cp(op1, op2) {
     $(N_flag) = 1;
     $(C_flag) = carry(op1,op2);
 }
+macro incwl(op1, op2) {
+    # With the INC #3,r instruction, if the operand is a word or a long word, no flags change.
+    op1 = op1 + op2;
+}
+macro decwl(op1, op2) {
+    # With the DEC #3,r instruction, if the operand is a word or a long word, no flags change.
+    op1 = op1 - op2;
+}
 macro neg(op1) {
     local tmp_op1 = op1;
     op1 = -op1;
-	setSubtractFlags(0, tmp_op1);
+    setSubtractFlags(0, tmp_op1);
     setResultFlags(op1);
 }
 macro extz16(dst) {
@@ -511,15 +518,9 @@ macro unlk(dst) {
     XSP = XSP + 4;
     dst = *:4 XSP;
 }
-macro switch_bank(i) {
-    local prev_rfp = $(RFP);
-    $(RFP) = i & 0b111;
-    if ($(MAX) == 0) goto <prev_ld>;
-    $(RFP) = $(RFP) & 0b011;
-
+macro sync_banks(prev_rfp) {
 # To simplify register updates, we only synchronize
 # the current and previous banks when switching to another bank.
-<prev_ld>
     XWA_P = XWA; XBC_P = XBC; XDE_P = XDE; XHL_P = XHL;
 
     if (prev_rfp == 1) goto <prev_st1>;
@@ -552,10 +553,18 @@ macro switch_bank(i) {
     XWA = XWA_3; XBC = XBC_3; XDE = XDE_3; XHL = XHL_3;
 <end>
 }
+macro switch_bank(i) {
+    local prev_rfp = $(RFP);
+    $(RFP) = i & 0b111;
+    if ($(MAX) == 0) goto <prev_ld>;
+    $(RFP) = $(RFP) & 0b011;
+<prev_ld>
+    sync_banks(prev_rfp);
+}
 
 # (8) Rotate and shift
 macro rlc(count, reg, width) {
-	reg = (reg << count) | (reg >> (width - count));
+    reg = (reg << count) | (reg >> (width - count));
     setShiftFlags(reg);
 }
 macro rrc(count, reg, width) {
@@ -563,27 +572,36 @@ macro rrc(count, reg, width) {
     setShiftFlags(reg);
 }
 macro rl(count, reg, width) {
-	reg = (reg << count) | (reg >> (width - count)) | (zext($(C_flag)) << (count - 1));
+    reg = (reg << count) | (reg >> (width - count)) | (zext($(C_flag)) << (count - 1));
     setShiftFlags(reg);
 }
 macro rr(count, reg, width) {
     reg = (reg >> count) | (reg << (width - count)) | (zext($(C_flag)) << (width - count));
     setShiftFlags(reg);
 }
-macro sla(count, reg) {
-	reg = reg << count;
-    setShiftFlags(reg);
-}
-macro sra(count, reg) {
-    reg = reg s>> count;
-    setShiftFlags(reg);
-}
 macro sll(count, reg) {
-	reg = reg << count;
+    local i = count;
+    local tmp_C = $(C_flag);
+<cycle>
+    if (i == 0:1) goto <end>;
+    $(C_flag) = reg s< 0;
+    reg = reg << 1;
+    i = i - 1:1;
+    goto <cycle>;
+<end>
     setShiftFlags(reg);
 }
 macro srl(count, reg) {
+    $(C_flag) = (reg & (1 << (count - 1))) != 0;
     reg = reg >> count;
+    setShiftFlags(reg);
+}
+macro sla(count, reg) {
+    sll(count, reg);
+}
+macro sra(count, reg) {
+    $(C_flag) = (reg & (1 << (count - 1))) != 0;
+    reg = reg s>> count;
     setShiftFlags(reg);
 }
 macro rld(dst1, dst2) {
@@ -615,6 +633,9 @@ macro rrd(dst1, dst2) {
 
 # Constructors
 
+# See "4. Addressing Modes"
+
+# Absolute
 addr8:      imm8  is imm8  { export *:1 imm8; }
 addr16:     imm16 is imm16 { export *:2 imm16; }
 addr24:     imm24 is imm24 { export *:3 imm24; }
@@ -631,26 +652,31 @@ addr24i8:   imm24 is imm24 { export *:1 imm24; }
 addr24i16:  imm24 is imm24 { export *:2 imm24; }
 addr24i24:  imm24 is imm24 { export *:3 imm24; }
 addr24i32:  imm24 is imm24 { export *:4 imm24; }
+
+# Register
 addr8m32:   w_rm32_00_02 is w_rm32_00_02 { export *:1 w_rm32_00_02; }
 addr16m32:  w_rm32_00_02 is w_rm32_00_02 { export *:2 w_rm32_00_02; }
 addr32m32:  w_rm32_00_02 is w_rm32_00_02 { export *:4 w_rm32_00_02; }
-r32d8:      w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = (w_rm32_00_02 + w_imm8_08_15); export tmp; }
-addr8d32:   r32d8 is r32d8 { export *:1 r32d8; }
-addr16d32:  r32d8 is r32d8 { export *:2 r32d8; }
-addr32d32:  r32d8 is r32d8 { export *:4 r32d8; }
 
-# Direct + increment/decrement memory addressing modes
+# Register indirect + post-increment / pre-decrement
 r32b_mem: r32b_02_07     is op_06=0b1 & op_00_03=0b0011 ; r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
 r32b_mem: "-"^r32b_02_07 is op_06=0b1 & op_00_03=0b0100 ; r32b_02_07 & op_00_01      { r32b_02_07 = r32b_02_07 - (1 << op_00_01); export r32b_02_07; }
 r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01      { tmp = r32b_02_07; r32b_02_07 = r32b_02_07 + (1 << op_00_01); export tmp; }
 r32b_eam: r32b_mem is r32b_mem { export *:4 r32b_mem; }
 
-# Displacement + register offset memory addressing modes
+# Register displacement
+r32d8:      w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = (w_rm32_00_02 + w_imm8_08_15); export tmp; }
+addr8d32:   r32d8 is r32d8 { export *:1 r32d8; }
+addr16d32:  r32d8 is r32d8 { export *:2 r32d8; }
+addr32d32:  r32d8 is r32d8 { export *:4 r32d8; }
+
+# Banked register index + displacement
 r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp:4 = (l_r32b_02_07 + l_imm16_08_23); export tmp; }
 r32b_dsp: l_r32b_08_15^"+"^l_r8b_16_23   is l_op_00_07=0b011 & l_r32b_08_15 & l_r8b_16_23  { tmp:4 = (l_r32b_08_15 + zext(l_r8b_16_23)); export tmp; }
 r32b_dsp: l_r32b_08_15^"+"^l_r16b_16_23  is l_op_00_07=0b111 & l_r32b_08_15 & l_r16b_16_23 { tmp:4 = (l_r32b_08_15 + zext(l_r16b_16_23)); export tmp; }
 r32b_ead: r32b_dsp is r32b_dsp { export *:4 r32b_dsp; }
 
+# Relative
 rel8:  reloc is simm8  [ reloc=inst_next+simm8; ] { export *[ram]:4 reloc; }
 rel16: reloc is simm16 [ reloc=((inst_next >> 16) << 16) | ((inst_next + simm16) & 0xFFFF); ] { export *[ram]:4 reloc; }
 rel32: reloc is simm32 [ reloc=inst_next+simm32; ] { export *[ram]:4 reloc; }
@@ -705,7 +731,13 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :nop     is op_00_07=0x00 {}
 :normal  is op_00_07=0x01 { normal_mode(); }
 :push SR is op_00_07=0x02 & SR { push16(SR); }
-:pop SR  is op_00_07=0x03 & SR { pop16(SR); }
+:pop SR  is op_00_07=0x03 & SR { 
+    local prev_rfp = $(RFP);
+    pop16(SR); 
+    if (prev_rfp == $(RFP)) goto <end>;
+    sync_banks(prev_rfp);
+<end>
+}
 :max     is op_00_07=0x04 { maximum_mode(); }
 :halt    is op_00_07=0x05 { halt(); }
 :ei imm8 is op_00_07=0x06 ; imm8 { enable_interrupt(imm8:1); }
@@ -883,11 +915,11 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :divs w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { divs(w_rn16_08_10,w_rm16_00_02); }
 :divs w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { divs(w_rn32_08_10,w_rm32_00_02); }
 :inc  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { add(w_rm8_00_02,w_imm3_08_10); }
-:inc  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { add(w_rm16_00_02,w_imm3_08_10); }
-:inc  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { add(w_rm32_00_02,w_imm3_08_10); }
+:inc  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { incwl(w_rm16_00_02,w_imm3_08_10); }
+:inc  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { incwl(w_rm32_00_02,w_imm3_08_10); }
 :dec  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { sub(w_rm8_00_02,w_imm3_08_10); }
-:dec  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { sub(w_rm16_00_02,w_imm3_08_10); }
-:dec  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sub(w_rm32_00_02,w_imm3_08_10); }
+:dec  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { decwl(w_rm16_00_02,w_imm3_08_10); }
+:dec  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { decwl(w_rm32_00_02,w_imm3_08_10); }
 :scc  w_cc,w_rm8_00_02           is w_op_12_15=0b0111 & w_cc & w_flags_08_11 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { w_rm8_00_02 = zext(w_cc); }
 :scc  w_cc,w_rm16_00_02          is w_op_12_15=0b0111 & w_cc & w_flags_08_11 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { w_rm16_00_02 = zext(w_cc); }
 :scc  w_cc,w_rm32_00_02          is w_op_12_15=0b0111 & w_cc & w_flags_08_11 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { w_rm32_00_02 = zext(w_cc); }
@@ -954,7 +986,7 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :cp  w_rm16_00_02,imm16 is w_op_08_15=0xcf & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { cp(w_rm16_00_02,imm16); }
 :cp  w_rm32_00_02,imm32 is w_op_08_15=0xcf & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { cp(w_rm32_00_02,imm32); }
 
-:cp w_rm8_00_02,w_imm3_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02 { cp(w_rm8_00_02,w_imm3_08_10 ); }
+:cp w_rm8_00_02,w_imm3_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { cp(w_rm8_00_02,w_imm3_08_10 ); }
 :cp w_rm16_00_02,w_imm3_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { cp(w_rm16_00_02,w_imm3_08_10); }
 :cp w_rm32_00_02,w_imm3_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { cp(w_rm32_00_02,w_imm3_08_10); }
 
@@ -1084,9 +1116,9 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :divs  w_rn16_08_10,(addr16m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { divs(w_rn16_08_10,addr16m32); }
 :divs  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { divs(w_rn32_08_10,addr32m32); }
 :inc   w_imm3_08_10,(addr8m32)   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { add(addr8m32,w_imm3_08_10); }
-:incw  w_imm3_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { add(addr16m32,w_imm3_08_10); }
+:incw  w_imm3_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { incwl(addr16m32,w_imm3_08_10); }
 :dec   w_imm3_08_10,(addr8m32)   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { sub(addr8m32,w_imm3_08_10); }
-:decw  w_imm3_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sub(addr16m32,w_imm3_08_10); }
+:decw  w_imm3_08_10,(addr16m32)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { decwl(addr16m32,w_imm3_08_10); }
 :rlc   (addr8m32)                is w_op_08_15=0x78 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { rlc(1, addr8m32, 8); }
 :rlcw  (addr16m32)               is w_op_08_15=0x78 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { rlc(1, addr16m32, 16); }
 :rrc   (addr8m32)                is w_op_08_15=0x79 & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { rrc(1, addr8m32, 8); }
