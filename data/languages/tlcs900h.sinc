@@ -3,7 +3,6 @@
 define pcodeop normal_mode;
 define pcodeop maximum_mode;
 define pcodeop halt;
-define pcodeop enable_interrupt;
 define pcodeop software_interrupt;
 
 define token ins8 (8)
@@ -78,10 +77,7 @@ define token ins24 (24)
 ;
 
 define token data8 (8)
-   d8 = (0,7)
-   imm4 = (4,7)
    imm8 = (0,7)
-   sign8 = (7,7)
    simm8 = (0,7) signed
 ;
 
@@ -242,14 +238,15 @@ macro setResultFlags(result) {
     $(S_flag) = (result s< 0);
     $(Z_flag) = (result == 0);
 }
-macro setAddFlags(sum, op1, op2) {
-    $(H_flag) = (((op1 ^ op2 ^ sum) >> 4) & 1) != 0;
-    $(V_flag) = ((op1 ^ sum) & (op2 ^ sum)) s< 0;
+macro setAddFlags(result, op1, op2) {
+    $(H_flag) = (((op1 ^ op2 ^ result) >> 4) & 1) != 0;
+    $(V_flag) = ((op1 ^ result) & (op2 ^ result)) s< 0;
     $(N_flag) = 0;
 }
-macro setSubtractFlags(op1,op2) {
+macro setSubtractFlags(result, op1, op2) {
+    $(H_flag) = (((op1 ^ op2 ^ result) >> 4) & 1) != 0;
+    $(V_flag) = ((op1 ^ result) & (op2 ^ result)) s< 0;
     $(N_flag) = 1;
-    $(C_flag) = (op1 < op2);
 }
 macro setShiftFlags(result) {
     setResultFlags(result);
@@ -277,7 +274,7 @@ macro add(op1, op2) {
     op1 = op1 + op2;
     setResultFlags(op1);
     setAddFlags(op1, tmp_op1, tmp_op2);
-    $(C_flag) = carry(op1,op2);
+    $(C_flag) = carry(tmp_op1, tmp_op2);
 }
 macro adc(op1, op2) {
     local tmp_op1 = op1;
@@ -292,8 +289,9 @@ macro sub(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     op1 = op1 - op2;
-    setSubtractFlags(tmp_op1, tmp_op2);
     setResultFlags(op1);
+    setSubtractFlags(op1, tmp_op1, -tmp_op2);
+    $(C_flag) = carry(tmp_op1, tmp_op2);
 }
 macro sbc(op1, op2) {
     local tmp_op1 = op1;
@@ -301,15 +299,15 @@ macro sbc(op1, op2) {
     local tmp_C = $(C_flag);
     op1 = op1 - op2;
     setResultFlags(op1);
-    setSubtractFlags(tmp_op1, tmp_op2);
+    setSubtractFlags(op1, tmp_op1, -tmp_op2);
     not_C = ~tmp_C;
     $(C_flag) = ((tmp_op1 < sext(not_C)) || (tmp_op2 < (tmp_op1 - sext(not_C))));
 }
 macro cp(op1, op2) {
     local tmp = op1 - op2;
     setResultFlags(tmp);
-    $(N_flag) = 1;
-    $(C_flag) = carry(op1,op2);
+    setSubtractFlags(tmp, op1, -op2);
+    $(C_flag) = tmp s< 0;
 }
 macro incwl(op1, op2) {
     # With the INC #3,r instruction, if the operand is a word or a long word, no flags change.
@@ -322,8 +320,9 @@ macro decwl(op1, op2) {
 macro neg(op1) {
     local tmp_op1 = op1;
     op1 = -op1;
-    setSubtractFlags(0, tmp_op1);
+    setSubtractFlags(op1, 0, -tmp_op1);
     setResultFlags(op1);
+    $(C_flag) = carry(0, tmp_op1);
 }
 macro extz16(dst) {
     local temp:2 = dst:2;
@@ -392,7 +391,7 @@ macro ld_rep(rm, rn, step, once) {
 <end>
     $(H_flag) = 0;
     $(V_flag) = (BC != 0);
-    $(C_flag) = 0;
+    $(N_flag) = 0;
 }
 macro cp_rep(rm, rn, step, once) {
 <top>
@@ -403,6 +402,7 @@ macro cp_rep(rm, rn, step, once) {
     goto <top>;
 <end>
     $(V_flag) = (BC != 0);
+    $(N_flag) = 1;
 }
 
 # (5) Logical operations
@@ -456,8 +456,10 @@ macro xorcf(n, src) {
 }
 macro bit(n, src) {
     local src_bit:1 = ((src >> n) & 1) != 0;
+    $(S_flag) = 0; # Undefined
     $(Z_flag) = src_bit == 0;
     $(H_flag) = 1;
+    $(V_flag) = 0; # Undefined
     $(N_flag) = 0;
 }
 macro res(n, dst) {
@@ -475,8 +477,10 @@ macro chg(n, dst) {
 }
 macro tset(n, dst) {
     local dst_bit:1 = ((dst >> n) & 1) != 0;
+    $(S_flag) = 0; # Undefined
     $(Z_flag) = dst_bit == 0;
     $(H_flag) = 1;
+    $(V_flag) = 0; # Undefined
     $(N_flag) = 0;
     set(n, dst);
 }
@@ -731,16 +735,16 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :nop     is op_00_07=0x00 {}
 :normal  is op_00_07=0x01 { normal_mode(); }
 :push SR is op_00_07=0x02 & SR { push16(SR); }
-:pop SR  is op_00_07=0x03 & SR { 
+:pop SR  is op_00_07=0x03 & SR {
     local prev_rfp = $(RFP);
-    pop16(SR); 
+    pop16(SR);
     if (prev_rfp == $(RFP)) goto <end>;
     sync_banks(prev_rfp);
 <end>
 }
 :max     is op_00_07=0x04 { maximum_mode(); }
 :halt    is op_00_07=0x05 { halt(); }
-:ei imm8 is op_00_07=0x06 ; imm8 { enable_interrupt(imm8:1); }
+:ei imm8 is op_00_07=0x06 ; imm8 { $(IFF) = imm8 & 0b111; }
 :reti    is op_00_07=0x07 {
     pop16(SR);
     pop32(PC);
@@ -764,8 +768,16 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 
 :rcf         is op_00_07=0x10 { $(H_flag) = 0; $(V_flag) = 0; $(C_flag) = 0; }
 :scf         is op_00_07=0x11 { $(H_flag) = 0; $(V_flag) = 0; $(C_flag) = 1; }
-:ccf         is op_00_07=0x12 { $(N_flag) = 0; $(C_flag) = ~$(C_flag); }
-:zcf         is op_00_07=0x13 { $(N_flag) = 0; $(C_flag) = ~$(Z_flag); }
+:ccf         is op_00_07=0x12 {
+    $(N_flag) = 0;
+    $(C_flag) = ~$(C_flag);
+    $(H_flag) = 0; # Undefined
+}
+:zcf         is op_00_07=0x13 {
+    $(N_flag) = 0;
+    $(C_flag) = ~$(Z_flag);
+    $(H_flag) = 0; # Undefined
+}
 :push A      is op_00_07=0x14 & A { push16(A); }
 :pop A       is op_00_07=0x15 & A { pop16(A); }
 :ex F,F_I    is op_00_07=0x16 & F & F_I { ex(F, F_I); }
@@ -1050,29 +1062,29 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :ldir  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL,  1, 0); }
 :ldd   [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL, -1, 1); }
 :lddr  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL, -1, 0); }
-:ldiw  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x10 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL,  1, 1); }
-:ldirw [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL,  1, 0); }
-:lddw  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL, -1, 1); }
-:lddrw [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL, -1, 0); }
+:ldiw  [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x10 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL,  2, 1); }
+:ldirw [(XDE^"+"),(XHL^"+")] is XDE & XHL & w_op_08_15=0x11 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL,  2, 0); }
+:lddw  [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL, -2, 1); }
+:lddrw [("-"^XDE),("-"^XHL)] is XDE & XHL & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02!=0b101 { ld_rep(XDE, XHL, -2, 0); }
 
 :ldi   (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY,  1, 1); }
 :ldir  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY,  1, 0); }
 :ldd   ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY, -1, 1); }
 :lddr  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_04_07=0b1000 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY, -1, 0); }
-:ldiw  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY,  1, 1); }
-:ldirw (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY,  1, 0); }
-:lddw  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY, -1, 1); }
-:lddrw ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY, -1, 0); }
+:ldiw  (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x10 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY,  2, 1); }
+:ldirw (XIX^"+"),(XIY^"+") is XIX & XIY & w_op_08_15=0x11 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY,  2, 0); }
+:lddw  ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x12 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY, -2, 1); }
+:lddrw ("-"^XIX),("-"^XIY) is XIX & XIY & w_op_08_15=0x13 & w_op_04_07=0b1001 & w_op_03=0b0 & w_op_00_02=0b101 { ld_rep(XIX, XIY, -2, 0); }
 
 :cpi  [A,(w_rm8_00_02^"+")] is w_op_08_15=0x14 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02,  1, 1); }
 :cpir [A,(w_rm8_00_02^"+")] is w_op_08_15=0x15 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02,  1, 0); }
 :cpd  [A,(w_rm8_00_02^"-")] is w_op_08_15=0x16 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02, -1, 1); }
 :cpdr [A,(w_rm8_00_02^"-")] is w_op_08_15=0x17 & w_op_04_07=0b1000 & w_op_03=0b0 & A & w_rm8_00_02 { cp_rep(A, w_rm8_00_02, -1, 0); }
 
-:cpiw  [WA,(w_rm16_00_02^"+")] is w_op_08_15=0x14 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02,  1, 1); }
-:cpirw [WA,(w_rm16_00_02^"+")] is w_op_08_15=0x15 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02,  1, 0); }
-:cpdw  [WA,(w_rm16_00_02^"-")] is w_op_08_15=0x16 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02, -1, 1); }
-:cpdrw [WA,(w_rm16_00_02^"-")] is w_op_08_15=0x17 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02, -1, 0); }
+:cpiw  [WA,(w_rm16_00_02^"+")] is w_op_08_15=0x14 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02,  2, 1); }
+:cpirw [WA,(w_rm16_00_02^"+")] is w_op_08_15=0x15 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02,  2, 0); }
+:cpdw  [WA,(w_rm16_00_02^"-")] is w_op_08_15=0x16 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02, -2, 1); }
+:cpdrw [WA,(w_rm16_00_02^"-")] is w_op_08_15=0x17 & w_op_04_07=0b1001 & w_op_03=0b0 & WA & w_rm16_00_02 { cp_rep(WA, w_rm16_00_02, -2, 0); }
 
 #### R,(mem)
 

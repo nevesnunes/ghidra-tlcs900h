@@ -48,7 +48,7 @@ define register offset=0xbe size=1 [ F_I ];
 
 @define RFP  "SR[8,3]"  # File Pointer
 @define MAX  "SR[11,1]" # Maximum Mode
-@define IFF  "SR[12,3]" # Mask
+@define IFF  "SR[12,3]" # Interrupt Mask Flip-Flop
 @define SYSM "SR[15,1]" # System Mode
 
 @include "tlcs900h.sinc"
