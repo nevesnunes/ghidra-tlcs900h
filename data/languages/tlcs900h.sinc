@@ -768,7 +768,7 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :zcf         is op_00_07=0x13 { $(N_flag) = 0; $(C_flag) = ~$(Z_flag); }
 :push A      is op_00_07=0x14 & A { push16(A); }
 :pop A       is op_00_07=0x15 & A { pop16(A); }
-:ex F,^"F'"  is op_00_07=0x16 & F { F = F ^ F; }
+:ex F,F_I    is op_00_07=0x16 & F & F_I { ex(F, F_I); }
 :ldf imm8    is op_00_07=0x17 ; imm8 { switch_bank(imm8); }
 :push F      is op_00_07=0x18 & F { push16(F); }
 :pop F       is op_00_07=0x19 & F { pop16(F); }
@@ -795,7 +795,7 @@ swi_n: "7" is intrs_00_03=0xf { c:1 = 7; export c; }
 :pop r16      is op_04_07=0b0100 & op_03=0b1 & r16 { push16(r16); }
 :pop r32      is op_04_07=0b0101 & op_03=0b1 & r32 { pop32(r32); }
 
-:jr cc, rel8 is op_04_07=0b0110 & cc & flags_00_03; rel8 { if (cc) goto rel8; }
+:jr  cc, rel8  is op_04_07=0b0110 & cc & flags_00_03; rel8  { if (cc) goto rel8; }
 :jrl cc, rel16 is op_04_07=0b0111 & cc & flags_00_03; rel16 { if (cc) goto rel16; }
 
 :ldx (addr8),imm8 is op_00_07=0xf7 ; addr8 ; imm8 { addr8 = imm8; }

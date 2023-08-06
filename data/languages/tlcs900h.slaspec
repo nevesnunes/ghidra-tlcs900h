@@ -36,6 +36,8 @@ define register offset=0xb8 size=2 [ NSP _ ];
 define register offset=0xbc size=2 [ SR ];
 # Flag Register
 define register offset=0xbc size=1 [ F _ ];
+# Inverse Flag Register
+define register offset=0xbe size=1 [ F_I ];
 
 @define C_flag "SR[0,1]" # Carry
 @define N_flag "SR[1,1]" # Add/Subtract
