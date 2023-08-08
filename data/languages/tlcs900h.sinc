@@ -237,13 +237,15 @@ macro setResultFlags(result) {
     $(Z_flag) = (result == 0);
 }
 macro setAddFlags(result, op1, op2) {
+    setResultFlags(result);
     $(H_flag) = (((op1 ^ op2 ^ result) >> 4) & 1) != 0;
-    $(V_flag) = ((op1 ^ result) & (op2 ^ result)) s< 0;
+    $(V_flag) = ((op1 ^ result) & (op1 ^ op2)) s< 0;
     $(N_flag) = 0;
 }
 macro setSubtractFlags(result, op1, op2) {
+    setResultFlags(result);
     $(H_flag) = (((op1 ^ op2 ^ result) >> 4) & 1) != 0;
-    $(V_flag) = ((op1 ^ result) & (op2 ^ result)) s< 0;
+    $(V_flag) = ((op1 ^ result) & (op1 ^ op2)) s< 0;
     $(N_flag) = 1;
 }
 macro setShiftFlags(result) {
@@ -253,6 +255,7 @@ macro setShiftFlags(result) {
     $(N_flag) = 0;
 }
 macro setLogicalFlags(result) {
+    setResultFlags(op1);
     $(V_flag) = (popcount(result) & 1:1) == 0;
     $(N_flag) = 0;
     $(C_flag) = 0;
@@ -270,42 +273,57 @@ macro add(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     op1 = op1 + op2;
-    setResultFlags(op1);
     setAddFlags(op1, tmp_op1, tmp_op2);
     $(C_flag) = carry(tmp_op1, tmp_op2);
+}
+macro add32(op1, op2) {
+    add(op1, op2);
+    $(H_flag) = 0; # Undefined
 }
 macro adc(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     local tmp_C = $(C_flag);
     op1 = op1 + op2 + zext(tmp_C);
-    setResultFlags(op1);
     setAddFlags(op1, tmp_op1, tmp_op2);
     $(C_flag) = (carry(tmp_op1, zext(tmp_C)) || carry(tmp_op2, tmp_op1 + zext(tmp_C)));
+}
+macro adc32(op1, op2) {
+    adc(op1, op2);
+    $(H_flag) = 0; # Undefined
 }
 macro sub(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     op1 = op1 - op2;
-    setResultFlags(op1);
-    setSubtractFlags(op1, tmp_op1, -tmp_op2);
-    $(C_flag) = carry(tmp_op1, tmp_op2);
+    setSubtractFlags(op1, tmp_op1, tmp_op2);
+    $(C_flag) = sborrow(tmp_op1, tmp_op2);
+}
+macro sub32(op1, op2) {
+    sub(op1, op2);
+    $(H_flag) = 0; # Undefined
 }
 macro sbc(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     local tmp_C = $(C_flag);
     op1 = op1 - op2;
-    setResultFlags(op1);
-    setSubtractFlags(op1, tmp_op1, -tmp_op2);
+    setSubtractFlags(op1, tmp_op1, tmp_op2);
     not_C = ~tmp_C;
     $(C_flag) = ((tmp_op1 < sext(not_C)) || (tmp_op2 < (tmp_op1 - sext(not_C))));
 }
+macro sbc32(op1, op2) {
+    sbc(op1, op2);
+    $(H_flag) = 0; # Undefined
+}
 macro cp(op1, op2) {
     local tmp = op1 - op2;
-    setResultFlags(tmp);
-    setSubtractFlags(tmp, op1, -op2);
-    $(C_flag) = tmp s< 0;
+    setSubtractFlags(tmp, op1, op2);
+    $(C_flag) = tmp > op1;
+}
+macro cp32(op1, op2) {
+    cp(op1, op2);
+    $(H_flag) = 0; # Undefined
 }
 macro incwl(op1, op2) {
     # With the INC #3,r instruction, if the operand is a word or a long word, no flags change.
@@ -318,9 +336,8 @@ macro decwl(op1, op2) {
 macro neg(op1) {
     local tmp_op1 = op1;
     op1 = -op1;
-    setSubtractFlags(op1, 0, -tmp_op1);
-    setResultFlags(op1);
-    $(C_flag) = carry(0, tmp_op1);
+    setSubtractFlags(op1, 0, tmp_op1);
+    $(C_flag) = sborrow(0, tmp_op1);
 }
 macro extz16(dst) {
     local temp:2 = dst:2;
@@ -406,19 +423,16 @@ macro cp_rep(rm, rn, step, once) {
 # (5) Logical operations
 macro and(op1, op2) {
     op1 = op1 & op2;
-    setResultFlags(op1);
     setLogicalFlags(op1);
     $(H_flag) = 1;
 }
 macro or(op1, op2) {
     op1 = op1 | op2;
-    setResultFlags(op1);
     setLogicalFlags(op1);
     $(H_flag) = 0;
 }
 macro xor(op1, op2) {
     op1 = op1 ^ op2;
-    setResultFlags(op1);
     setLogicalFlags(op1);
     $(H_flag) = 0;
 }
@@ -932,16 +946,16 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :scc  w_cc,w_rm32_00_02          is w_op_12_15=0b0111 & w_cc & w_flags_08_11 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { w_rm32_00_02 = zext(w_cc); }
 :add  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { add(w_rn8_08_10,w_rm8_00_02); }
 :add  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { add(w_rn16_08_10,w_rm16_00_02); }
-:add  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { add(w_rn32_08_10,w_rm32_00_02); }
+:add  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { add32(w_rn32_08_10,w_rm32_00_02); }
 :adc  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { adc(w_rn8_08_10,w_rm8_00_02); }
 :adc  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { adc(w_rn16_08_10,w_rm16_00_02); }
-:adc  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { adc(w_rn32_08_10,w_rm32_00_02); }
+:adc  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { adc32(w_rn32_08_10,w_rm32_00_02); }
 :sub  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { sub(w_rn8_08_10,w_rm8_00_02); }
 :sub  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { sub(w_rn16_08_10,w_rm16_00_02); }
-:sub  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sub(w_rn32_08_10,w_rm32_00_02); }
+:sub  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sub32(w_rn32_08_10,w_rm32_00_02); }
 :sbc  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { sbc(w_rn8_08_10,w_rm8_00_02); }
 :sbc  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { sbc(w_rn16_08_10,w_rm16_00_02); }
-:sbc  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sbc(w_rn32_08_10,w_rm32_00_02); }
+:sbc  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sbc32(w_rn32_08_10,w_rm32_00_02); }
 :and  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { and(w_rn8_08_10,w_rm8_00_02); }
 :and  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { and(w_rn16_08_10,w_rm16_00_02); }
 :and  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { and(w_rn32_08_10,w_rm32_00_02); }
@@ -953,7 +967,7 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :or   w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { or(w_rn32_08_10,w_rm32_00_02); }
 :cp   w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { cp(w_rn8_08_10,w_rm8_00_02); }
 :cp   w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { cp(w_rn16_08_10,w_rm16_00_02); }
-:cp   w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { cp(w_rn32_08_10,w_rm32_00_02); }
+:cp   w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { cp32(w_rn32_08_10,w_rm32_00_02); }
 
 :ld w_rn8_08_10,w_rm8_00_02   is w_op_12_15=0b1000 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { w_rn8_08_10 = w_rm8_00_02; }
 :ld w_rn16_08_10,w_rm16_00_02 is w_op_12_15=0b1000 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { w_rn16_08_10 = w_rm16_00_02; }
@@ -970,16 +984,16 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 
 :add w_rm8_00_02,imm8   is w_op_08_15=0xc8 & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { add(w_rm8_00_02,imm8); }
 :add w_rm16_00_02,imm16 is w_op_08_15=0xc8 & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { add(w_rm16_00_02,imm16); }
-:add w_rm32_00_02,imm32 is w_op_08_15=0xc8 & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { add(w_rm32_00_02,imm32); }
+:add w_rm32_00_02,imm32 is w_op_08_15=0xc8 & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { add32(w_rm32_00_02,imm32); }
 :adc w_rm8_00_02,imm8   is w_op_08_15=0xc9 & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { adc(w_rm8_00_02,imm8); }
 :adc w_rm16_00_02,imm16 is w_op_08_15=0xc9 & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { adc(w_rm16_00_02,imm16); }
-:adc w_rm32_00_02,imm32 is w_op_08_15=0xc9 & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { adc(w_rm32_00_02,imm32); }
+:adc w_rm32_00_02,imm32 is w_op_08_15=0xc9 & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { adc32(w_rm32_00_02,imm32); }
 :sub w_rm8_00_02,imm8   is w_op_08_15=0xca & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { sub(w_rm8_00_02,imm8); }
 :sub w_rm16_00_02,imm16 is w_op_08_15=0xca & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { sub(w_rm16_00_02,imm16); }
-:sub w_rm32_00_02,imm32 is w_op_08_15=0xca & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { sub(w_rm32_00_02,imm32); }
+:sub w_rm32_00_02,imm32 is w_op_08_15=0xca & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { sub32(w_rm32_00_02,imm32); }
 :sbc w_rm8_00_02,imm8   is w_op_08_15=0xcb & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { sbc(w_rm8_00_02,imm8); }
 :sbc w_rm16_00_02,imm16 is w_op_08_15=0xcb & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { sbc(w_rm16_00_02,imm16); }
-:sbc w_rm32_00_02,imm32 is w_op_08_15=0xcb & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { sbc(w_rm32_00_02,imm32); }
+:sbc w_rm32_00_02,imm32 is w_op_08_15=0xcb & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { sbc32(w_rm32_00_02,imm32); }
 :and w_rm8_00_02,imm8   is w_op_08_15=0xcc & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { and(w_rm8_00_02,imm8); }
 :and w_rm16_00_02,imm16 is w_op_08_15=0xcc & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { and(w_rm16_00_02,imm16); }
 :and w_rm32_00_02,imm32 is w_op_08_15=0xcc & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { and(w_rm32_00_02,imm32); }
@@ -991,7 +1005,7 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :or  w_rm32_00_02,imm32 is w_op_08_15=0xce & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { or(w_rm32_00_02,imm32); }
 :cp  w_rm8_00_02,imm8   is w_op_08_15=0xcf & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { cp(w_rm8_00_02,imm8); }
 :cp  w_rm16_00_02,imm16 is w_op_08_15=0xcf & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { cp(w_rm16_00_02,imm16); }
-:cp  w_rm32_00_02,imm32 is w_op_08_15=0xcf & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { cp(w_rm32_00_02,imm32); }
+:cp  w_rm32_00_02,imm32 is w_op_08_15=0xcf & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { cp32(w_rm32_00_02,imm32); }
 
 :cp w_rm8_00_02,w_imm3_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { cp(w_rm8_00_02,w_imm3_08_10 ); }
 :cp w_rm16_00_02,w_imm3_08_10 is w_op_12_15=0b1101 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { cp(w_rm16_00_02,w_imm3_08_10); }
@@ -1145,16 +1159,16 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 
 :add   w_rn8_08_10,(addr8m32)    is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { add(w_rn8_08_10,addr8m32); }
 :add   w_rn16_08_10,(addr16m32)  is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { add(w_rn16_08_10,addr16m32); }
-:add   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { add(w_rn32_08_10,addr32m32); }
+:add   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1000 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { add32(w_rn32_08_10,addr32m32); }
 :adc   w_rn8_08_10,(addr8m32)    is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { adc(w_rn8_08_10,addr8m32); }
 :adc   w_rn16_08_10,(addr16m32)  is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { adc(w_rn16_08_10,addr16m32); }
-:adc   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { adc(w_rn32_08_10,addr32m32); }
+:adc   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1001 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { adc32(w_rn32_08_10,addr32m32); }
 :sub   w_rn8_08_10,(addr8m32)    is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { sub(w_rn8_08_10,addr8m32); }
 :sub   w_rn16_08_10,(addr16m32)  is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sub(w_rn16_08_10,addr16m32); }
-:sub   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sub(w_rn32_08_10,addr32m32); }
+:sub   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1010 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sub32(w_rn32_08_10,addr32m32); }
 :sbc   w_rn8_08_10,(addr8m32)    is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { sbc(w_rn8_08_10,addr8m32); }
 :sbc   w_rn16_08_10,(addr16m32)  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sbc(w_rn16_08_10,addr16m32); }
-:sbc   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sbc(w_rn32_08_10,addr32m32); }
+:sbc   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sbc32(w_rn32_08_10,addr32m32); }
 :and   w_rn8_08_10,(addr8m32)    is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { and(w_rn8_08_10,(addr8m32)); }
 :and   w_rn16_08_10,(addr16m32)  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { and(w_rn16_08_10,addr16m32); }
 :and   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { and(w_rn32_08_10,addr32m32); }
@@ -1166,22 +1180,22 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :or    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { or(w_rn32_08_10,addr32m32); }
 :cp    w_rn8_08_10,(addr8m32)    is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { cp(w_rn8_08_10,addr8m32); }
 :cp    w_rn16_08_10,(addr16m32)  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { cp(w_rn16_08_10,addr16m32); }
-:cp    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { cp(w_rn32_08_10,addr32m32); }
+:cp    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { cp32(w_rn32_08_10,addr32m32); }
 
 #### (mem),R
 
 :add (addr8m32),w_rn8_08_10    is w_op_12_15=0b1000 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { add(addr8m32,w_rn8_08_10); }
 :add (addr16m32),w_rn16_08_10  is w_op_12_15=0b1000 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { add(addr16m32,w_rn16_08_10); }
-:add (addr32m32),w_rn32_08_10  is w_op_12_15=0b1000 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { add(addr32m32,w_rn32_08_10); }
+:add (addr32m32),w_rn32_08_10  is w_op_12_15=0b1000 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { add32(addr32m32,w_rn32_08_10); }
 :adc (addr8m32),w_rn8_08_10    is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { adc(addr8m32,w_rn8_08_10); }
 :adc (addr16m32),w_rn16_08_10  is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { adc(addr16m32,w_rn16_08_10); }
-:adc (addr32m32),w_rn32_08_10  is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { adc(addr32m32,w_rn32_08_10); }
+:adc (addr32m32),w_rn32_08_10  is w_op_12_15=0b1001 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { adc32(addr32m32,w_rn32_08_10); }
 :sub (addr8m32),w_rn8_08_10    is w_op_12_15=0b1010 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { sub(addr8m32,w_rn8_08_10); }
 :sub (addr16m32),w_rn16_08_10  is w_op_12_15=0b1010 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sub(addr16m32,w_rn16_08_10); }
-:sub (addr32m32),w_rn32_08_10  is w_op_12_15=0b1010 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sub(addr32m32,w_rn32_08_10); }
+:sub (addr32m32),w_rn32_08_10  is w_op_12_15=0b1010 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sub32(addr32m32,w_rn32_08_10); }
 :sbc (addr8m32),w_rn8_08_10    is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { sbc(addr8m32,w_rn8_08_10); }
 :sbc (addr16m32),w_rn16_08_10  is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { sbc(addr16m32,w_rn16_08_10); }
-:sbc (addr32m32),w_rn32_08_10  is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sbc(addr32m32,w_rn32_08_10); }
+:sbc (addr32m32),w_rn32_08_10  is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sbc32(addr32m32,w_rn32_08_10); }
 :and (addr8m32),w_rn8_08_10    is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { and(addr8m32,w_rn8_08_10); }
 :and (addr16m32),w_rn16_08_10  is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { and(addr16m32,w_rn16_08_10); }
 :and (addr32m32),w_rn32_08_10  is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { and(addr32m32,w_rn32_08_10); }
@@ -1193,7 +1207,7 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :or  (addr32m32),w_rn32_08_10  is w_op_12_15=0b1110 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { or(addr32m32,w_rn32_08_10); }
 :cp  (addr8m32),w_rn8_08_10    is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr8m32  { cp(addr8m32,w_rn8_08_10); }
 :cp  (addr16m32),w_rn16_08_10  is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr16m32 { cp(addr16m32,w_rn16_08_10); }
-:cp  (addr32m32),w_rn32_08_10  is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { cp(addr32m32,w_rn32_08_10); }
+:cp  (addr32m32),w_rn32_08_10  is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { cp32(addr32m32,w_rn32_08_10); }
 
 @include "src_mem.sinc"
 

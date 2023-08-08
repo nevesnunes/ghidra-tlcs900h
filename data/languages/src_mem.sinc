@@ -64,16 +64,16 @@
 
 :add   r8,(addr8d32)        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1000 & op_03=0b0 & r8  { add(r8,addr8d32); }
 :add   r16,(addr16d32)      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1000 & op_03=0b0 & r16 { add(r16,addr16d32); }
-:add   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1000 & op_03=0b0 & r32 { add(r32,addr32d32); }
+:add   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1000 & op_03=0b0 & r32 { add32(r32,addr32d32); }
 :adc   r8,(addr8d32)        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1001 & op_03=0b0 & r8  { adc(r8,addr8d32); }
 :adc   r16,(addr16d32)      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1001 & op_03=0b0 & r16 { adc(r16,addr16d32); }
-:adc   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1001 & op_03=0b0 & r32 { adc(r32,addr32d32); }
+:adc   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1001 & op_03=0b0 & r32 { adc32(r32,addr32d32); }
 :sub   r8,(addr8d32)        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1010 & op_03=0b0 & r8  { sub(r8,addr8d32); }
 :sub   r16,(addr16d32)      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1010 & op_03=0b0 & r16 { sub(r16,addr16d32); }
-:sub   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1010 & op_03=0b0 & r32 { sub(r32,addr32d32); }
+:sub   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1010 & op_03=0b0 & r32 { sub32(r32,addr32d32); }
 :sbc   r8,(addr8d32)        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1011 & op_03=0b0 & r8  { sbc(r8,addr8d32); }
 :sbc   r16,(addr16d32)      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1011 & op_03=0b0 & r16 { sbc(r16,addr16d32); }
-:sbc   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc(r32,addr32d32); }
+:sbc   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc32(r32,addr32d32); }
 :and   r8,(addr8d32)        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1100 & op_03=0b0 & r8  { and(r8,(addr8d32)); }
 :and   r16,(addr16d32)      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1100 & op_03=0b0 & r16 { and(r16,addr16d32); }
 :and   r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1100 & op_03=0b0 & r32 { and(r32,addr32d32); }
@@ -85,22 +85,22 @@
 :or    r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1110 & op_03=0b0 & r32 { or(r32,addr32d32); }
 :cp    r8,(addr8d32)        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1111 & op_03=0b0 & r8  { cp(r8,addr8d32); }
 :cp    r16,(addr16d32)      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1111 & op_03=0b0 & r16 { cp(r16,addr16d32); }
-:cp    r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1111 & op_03=0b0 & r32 { cp(r32,addr32d32); }
+:cp    r32,(addr32d32)      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1111 & op_03=0b0 & r32 { cp32(r32,addr32d32); }
 
 #### (mem),R
 
 :add   (addr8d32),r8        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1000 & op_03=0b1 & r8  { add(addr8d32,r8); }
 :add   (addr16d32),r16      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1000 & op_03=0b1 & r16 { add(addr16d32,r16); }
-:add   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1000 & op_03=0b1 & r32 { add(addr32d32,r32); }
+:add   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1000 & op_03=0b1 & r32 { add32(addr32d32,r32); }
 :adc   (addr8d32),r8        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1001 & op_03=0b1 & r8  { adc(addr8d32,r8); }
 :adc   (addr16d32),r16      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1001 & op_03=0b1 & r16 { adc(addr16d32,r16); }
-:adc   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1001 & op_03=0b1 & r32 { adc(addr32d32,r32); }
+:adc   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1001 & op_03=0b1 & r32 { adc32(addr32d32,r32); }
 :sub   (addr8d32),r8        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1010 & op_03=0b1 & r8  { sub(addr8d32,r8); }
 :sub   (addr16d32),r16      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1010 & op_03=0b1 & r16 { sub(addr16d32,r16); }
-:sub   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1010 & op_03=0b1 & r32 { sub(addr32d32,r32); }
+:sub   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1010 & op_03=0b1 & r32 { sub32(addr32d32,r32); }
 :sbc   (addr8d32),r8        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1011 & op_03=0b1 & r8  { sbc(addr8d32,r8); }
 :sbc   (addr16d32),r16      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1011 & op_03=0b1 & r16 { sbc(addr16d32,r16); }
-:sbc   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc(addr32d32,r32); }
+:sbc   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc32(addr32d32,r32); }
 :and   (addr8d32),r8        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1100 & op_03=0b1 & r8  { and(addr8d32,r8); }
 :and   (addr16d32),r16      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1100 & op_03=0b1 & r16 { and(addr16d32,r16); }
 :and   (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1100 & op_03=0b1 & r32 { and(addr32d32,r32); }
@@ -112,7 +112,7 @@
 :or    (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1110 & op_03=0b1 & r32 { or(addr32d32,r32); }
 :cp    (addr8d32),r8        is w_op_04_07=0b1000 & w_op_03=0b1 & addr8d32  ; op_04_07=0b1111 & op_03=0b1 & r8  { cp(addr8d32,r8); }
 :cp    (addr16d32),r16      is w_op_04_07=0b1001 & w_op_03=0b1 & addr16d32 ; op_04_07=0b1111 & op_03=0b1 & r16 { cp(addr16d32,r16); }
-:cp    (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1111 & op_03=0b1 & r32 { cp(addr32d32,r32); }
+:cp    (addr32d32),r32      is w_op_04_07=0b1010 & w_op_03=0b1 & addr32d32 ; op_04_07=0b1111 & op_03=0b1 & r32 { cp32(addr32d32,r32); }
 
 ### src=>(n)
 
@@ -400,16 +400,16 @@
 
 :add   r8,(addr24i8)       is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b1000 & op_03=0b0 & r8  { add(r8,addr24i8); }
 :add   r16,(addr24i16)     is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b1000 & op_03=0b0 & r16 { add(r16,addr24i16); }
-:add   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1000 & op_03=0b0 & r32 { add(r32,addr24i32); }
+:add   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1000 & op_03=0b0 & r32 { add32(r32,addr24i32); }
 :adc   r8,(addr24i8)       is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b1001 & op_03=0b0 & r8  { adc(r8,addr24i8); }
 :adc   r16,(addr24i16)     is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b1001 & op_03=0b0 & r16 { adc(r16,addr24i16); }
-:adc   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1001 & op_03=0b0 & r32 { adc(r32,addr24i32); }
+:adc   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1001 & op_03=0b0 & r32 { adc32(r32,addr24i32); }
 :sub   r8,(addr24i8)       is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b1010 & op_03=0b0 & r8  { sub(r8,addr24i8); }
 :sub   r16,(addr24i16)     is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b1010 & op_03=0b0 & r16 { sub(r16,addr24i16); }
-:sub   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1010 & op_03=0b0 & r32 { sub(r32,addr24i32); }
+:sub   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1010 & op_03=0b0 & r32 { sub32(r32,addr24i32); }
 :sbc   r8,(addr24i8)       is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b1011 & op_03=0b0 & r8  { sbc(r8,addr24i8); }
 :sbc   r16,(addr24i16)     is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b1011 & op_03=0b0 & r16 { sbc(r16,addr24i16); }
-:sbc   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc(r32,addr24i32); }
+:sbc   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc32(r32,addr24i32); }
 :and   r8,(addr24i8)       is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b1100 & op_03=0b0 & r8  { and(r8,(addr24i8)); }
 :and   r16,(addr24i16)     is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b1100 & op_03=0b0 & r16 { and(r16,addr24i16); }
 :and   r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1100 & op_03=0b0 & r32 { and(r32,addr24i32); }
@@ -421,22 +421,22 @@
 :or    r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1110 & op_03=0b0 & r32 { or(r32,addr24i32); }
 :cp    r8,(addr24i8)       is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b1111 & op_03=0b0 & r8  { cp(r8,addr24i8); }
 :cp    r16,(addr24i16)     is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b1111 & op_03=0b0 & r16 { cp(r16,addr24i16); }
-:cp    r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1111 & op_03=0b0 & r32 { cp(r32,addr24i32); }
+:cp    r32,(addr24i32)     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1111 & op_03=0b0 & r32 { cp32(r32,addr24i32); }
 
 #### (mem),R
 
 :add   (addr24i32),r8      is op_00_07=0xc2 ; addr24i32 ; op_04_07=0b1000 & op_03=0b1 & r8  { add(addr24i32,zext(r8)); }
 :add   (addr24i32),r16     is op_00_07=0xd2 ; addr24i32 ; op_04_07=0b1000 & op_03=0b1 & r16 { add(addr24i32,zext(r16)); }
-:add   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1000 & op_03=0b1 & r32 { add(addr24i32,r32); }
+:add   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1000 & op_03=0b1 & r32 { add32(addr24i32,r32); }
 :adc   (addr24i32),r8      is op_00_07=0xc2 ; addr24i32 ; op_04_07=0b1001 & op_03=0b1 & r8  { adc(addr24i32,zext(r8)); }
 :adc   (addr24i32),r16     is op_00_07=0xd2 ; addr24i32 ; op_04_07=0b1001 & op_03=0b1 & r16 { adc(addr24i32,zext(r16)); }
-:adc   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1001 & op_03=0b1 & r32 { adc(addr24i32,r32); }
+:adc   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1001 & op_03=0b1 & r32 { adc32(addr24i32,r32); }
 :sub   (addr24i32),r8      is op_00_07=0xc2 ; addr24i32 ; op_04_07=0b1010 & op_03=0b1 & r8  { sub(addr24i32,zext(r8)); }
 :sub   (addr24i32),r16     is op_00_07=0xd2 ; addr24i32 ; op_04_07=0b1010 & op_03=0b1 & r16 { sub(addr24i32,zext(r16)); }
-:sub   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1010 & op_03=0b1 & r32 { sub(addr24i32,r32); }
+:sub   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1010 & op_03=0b1 & r32 { sub32(addr24i32,r32); }
 :sbc   (addr24i32),r8      is op_00_07=0xc2 ; addr24i32 ; op_04_07=0b1011 & op_03=0b1 & r8  { sbc(addr24i32,zext(r8)); }
 :sbc   (addr24i32),r16     is op_00_07=0xd2 ; addr24i32 ; op_04_07=0b1011 & op_03=0b1 & r16 { sbc(addr24i32,zext(r16)); }
-:sbc   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc(addr24i32,r32); }
+:sbc   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc32(addr24i32,r32); }
 :and   (addr24i32),r8      is op_00_07=0xc2 ; addr24i32 ; op_04_07=0b1100 & op_03=0b1 & r8  { and(addr24i32,zext(r8)); }
 :and   (addr24i32),r16     is op_00_07=0xd2 ; addr24i32 ; op_04_07=0b1100 & op_03=0b1 & r16 { and(addr24i32,zext(r16)); }
 :and   (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1100 & op_03=0b1 & r32 { and(addr24i32,r32); }
@@ -448,7 +448,7 @@
 :or    (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1110 & op_03=0b1 & r32 { or(addr24i32,r32); }
 :cp    (addr24i32),r8      is op_00_07=0xc2 ; addr24i32 ; op_04_07=0b1111 & op_03=0b1 & r8  { cp(addr24i32,zext(r8)); }
 :cp    (addr24i32),r16     is op_00_07=0xd2 ; addr24i32 ; op_04_07=0b1111 & op_03=0b1 & r16 { cp(addr24i32,zext(r16)); }
-:cp    (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1111 & op_03=0b1 & r32 { cp(addr24i32,r32); }
+:cp    (addr24i32),r32     is op_00_07=0xe2 ; addr24i32 ; op_04_07=0b1111 & op_03=0b1 & r32 { cp32(addr24i32,r32); }
 
 ### src=>(mem+d16)
 ### src=>(mem+drb)
@@ -513,16 +513,16 @@
 
 :add   r8,(r32b_ead)       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b0 & r8  { add(r8,r32b_ead:1); }
 :add   r16,(r32b_ead)      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b0 & r16 { add(r16,r32b_ead:2); }
-:add   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b0 & r32 { add(r32,r32b_ead); }
+:add   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b0 & r32 { add32(r32,r32b_ead); }
 :adc   r8,(r32b_ead)       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b0 & r8  { adc(r8,r32b_ead:1); }
 :adc   r16,(r32b_ead)      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b0 & r16 { adc(r16,r32b_ead:2); }
-:adc   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b0 & r32 { adc(r32,r32b_ead); }
+:adc   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b0 & r32 { adc32(r32,r32b_ead); }
 :sub   r8,(r32b_ead)       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b0 & r8  { sub(r8,r32b_ead:1); }
 :sub   r16,(r32b_ead)      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b0 & r16 { sub(r16,r32b_ead:2); }
-:sub   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b0 & r32 { sub(r32,r32b_ead); }
+:sub   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b0 & r32 { sub32(r32,r32b_ead); }
 :sbc   r8,(r32b_ead)       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b0 & r8  { sbc(r8,r32b_ead:1); }
 :sbc   r16,(r32b_ead)      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b0 & r16 { sbc(r16,r32b_ead:2); }
-:sbc   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc(r32,r32b_ead); }
+:sbc   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc32(r32,r32b_ead); }
 :and   r8,(r32b_ead)       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b0 & r8  { and(r8,(r32b_ead:1)); }
 :and   r16,(r32b_ead)      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b0 & r16 { and(r16,r32b_ead:2); }
 :and   r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b0 & r32 { and(r32,r32b_ead); }
@@ -534,22 +534,22 @@
 :or    r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1110 & op_03=0b0 & r32 { or(r32,r32b_ead); }
 :cp    r8,(r32b_ead)       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b0 & r8  { cp(r8,r32b_ead:1); }
 :cp    r16,(r32b_ead)      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b0 & r16 { cp(r16,r32b_ead:2); }
-:cp    r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b0 & r32 { cp(r32,r32b_ead); }
+:cp    r32,(r32b_ead)      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b0 & r32 { cp32(r32,r32b_ead); }
 
 #### (mem),R
 
 :add   (r32b_ead),r8       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b1 & r8  { add(r32b_ead,zext(r8)); }
 :add   (r32b_ead),r16      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b1 & r16 { add(r32b_ead,zext(r16)); }
-:add   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b1 & r32 { add(r32b_ead,r32); }
+:add   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b1 & r32 { add32(r32b_ead,r32); }
 :adc   (r32b_ead),r8       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b1 & r8  { adc(r32b_ead,zext(r8)); }
 :adc   (r32b_ead),r16      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b1 & r16 { adc(r32b_ead,zext(r16)); }
-:adc   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b1 & r32 { adc(r32b_ead,r32); }
+:adc   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1001 & op_03=0b1 & r32 { adc32(r32b_ead,r32); }
 :sub   (r32b_ead),r8       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b1 & r8  { sub(r32b_ead,zext(r8)); }
 :sub   (r32b_ead),r16      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b1 & r16 { sub(r32b_ead,zext(r16)); }
-:sub   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b1 & r32 { sub(r32b_ead,r32); }
+:sub   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1010 & op_03=0b1 & r32 { sub32(r32b_ead,r32); }
 :sbc   (r32b_ead),r8       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b1 & r8  { sbc(r32b_ead,zext(r8)); }
 :sbc   (r32b_ead),r16      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b1 & r16 { sbc(r32b_ead,zext(r16)); }
-:sbc   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc(r32b_ead,r32); }
+:sbc   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc32(r32b_ead,r32); }
 :and   (r32b_ead),r8       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b1 & r8  { and(r32b_ead,zext(r8)); }
 :and   (r32b_ead),r16      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b1 & r16 { and(r32b_ead,zext(r16)); }
 :and   (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b1 & r32 { and(r32b_ead,r32); }
@@ -561,7 +561,7 @@
 :or    (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1110 & op_03=0b1 & r32 { or(r32b_ead,r32); }
 :cp    (r32b_ead),r8       is op_00_07=0xc3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b1 & r8  { cp(r32b_ead,zext(r8)); }
 :cp    (r32b_ead),r16      is op_00_07=0xd3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b1 & r16 { cp(r32b_ead,zext(r16)); }
-:cp    (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b1 & r32 { cp(r32b_ead,r32); }
+:cp    (r32b_ead),r32      is op_00_07=0xe3 ; r32b_ead ; op_04_07=0b1111 & op_03=0b1 & r32 { cp32(r32b_ead,r32); }
 
 ### src=>(mem)
 ### src=>(-xrr)
@@ -627,16 +627,16 @@
 
 :add   r8,(r32b_eam)       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b0 & r8  { add(r8,r32b_eam:1); }
 :add   r16,(r32b_eam)      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b0 & r16 { add(r16,r32b_eam:2); }
-:add   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b0 & r32 { add(r32,r32b_eam); }
+:add   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b0 & r32 { add32(r32,r32b_eam); }
 :adc   r8,(r32b_eam)       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b0 & r8  { adc(r8,r32b_eam:1); }
 :adc   r16,(r32b_eam)      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b0 & r16 { adc(r16,r32b_eam:2); }
-:adc   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b0 & r32 { adc(r32,r32b_eam); }
+:adc   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b0 & r32 { adc32(r32,r32b_eam); }
 :sub   r8,(r32b_eam)       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b0 & r8  { sub(r8,r32b_eam:1); }
 :sub   r16,(r32b_eam)      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b0 & r16 { sub(r16,r32b_eam:2); }
-:sub   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b0 & r32 { sub(r32,r32b_eam); }
+:sub   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b0 & r32 { sub32(r32,r32b_eam); }
 :sbc   r8,(r32b_eam)       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b0 & r8  { sbc(r8,r32b_eam:1); }
 :sbc   r16,(r32b_eam)      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b0 & r16 { sbc(r16,r32b_eam:2); }
-:sbc   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc(r32,r32b_eam); }
+:sbc   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b0 & r32 { sbc32(r32,r32b_eam); }
 :and   r8,(r32b_eam)       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b0 & r8  { and(r8,(r32b_eam:1)); }
 :and   r16,(r32b_eam)      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b0 & r16 { and(r16,r32b_eam:2); }
 :and   r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b0 & r32 { and(r32,r32b_eam); }
@@ -648,22 +648,22 @@
 :or    r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1110 & op_03=0b0 & r32 { or(r32,r32b_eam); }
 :cp    r8,(r32b_eam)       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b0 & r8  { cp(r8,r32b_eam:1); }
 :cp    r16,(r32b_eam)      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b0 & r16 { cp(r16,r32b_eam:2); }
-:cp    r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b0 & r32 { cp(r32,r32b_eam); }
+:cp    r32,(r32b_eam)      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b0 & r32 { cp32(r32,r32b_eam); }
 
 #### (mem),R
 
 :add   (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b1 & r8  { add(r32b_eam,zext(r8)); }
 :add   (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b1 & r16 { add(r32b_eam,zext(r16)); }
-:add   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b1 & r32 { add(r32b_eam,r32); }
+:add   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b1 & r32 { add32(r32b_eam,r32); }
 :adc   (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b1 & r8  { adc(r32b_eam,zext(r8)); }
 :adc   (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b1 & r16 { adc(r32b_eam,zext(r16)); }
-:adc   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b1 & r32 { adc(r32b_eam,r32); }
+:adc   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1001 & op_03=0b1 & r32 { adc32(r32b_eam,r32); }
 :sub   (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b1 & r8  { sub(r32b_eam,zext(r8)); }
 :sub   (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b1 & r16 { sub(r32b_eam,zext(r16)); }
-:sub   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b1 & r32 { sub(r32b_eam,r32); }
+:sub   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1010 & op_03=0b1 & r32 { sub32(r32b_eam,r32); }
 :sbc   (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b1 & r8  { sbc(r32b_eam,zext(r8)); }
 :sbc   (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b1 & r16 { sbc(r32b_eam,zext(r16)); }
-:sbc   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc(r32b_eam,r32); }
+:sbc   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1011 & op_03=0b1 & r32 { sbc32(r32b_eam,r32); }
 :and   (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b1 & r8  { and(r32b_eam,zext(r8)); }
 :and   (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b1 & r16 { and(r32b_eam,zext(r16)); }
 :and   (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b1 & r32 { and(r32b_eam,r32); }
@@ -675,4 +675,4 @@
 :or    (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1110 & op_03=0b1 & r32 { or(r32b_eam,r32); }
 :cp    (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b00) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b1 & r8  { cp(r32b_eam,zext(r8)); }
 :cp    (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b01) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b1 & r16 { cp(r32b_eam,zext(r16)); }
-:cp    (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b1 & r32 { cp(r32b_eam,r32); }
+:cp    (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b10) ... & r32b_eam ; op_04_07=0b1111 & op_03=0b1 & r32 { cp32(r32b_eam,r32); }
