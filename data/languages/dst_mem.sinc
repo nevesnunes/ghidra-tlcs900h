@@ -215,11 +215,15 @@
 :chg   imm3_00_02,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b0 & imm3_00_02 { chg(imm3_00_02,r32b_ead); }
 :bit   imm3_00_02,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b1100 & op_03=0b1 & imm3_00_02 { bit(imm3_00_02,r32b_ead); }
 
-:jp cc,r32b_dsp   is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b1101 & cc & flags_00_03 { if (cc) goto r32b_dsp; }
+:jp cc,r32b_dsp   is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b1101 & cc & flags_00_03 {
+    if (!cc) goto <done>;
+    goto [r32b_dsp];
+<done>
+}
 :call cc,r32b_dsp is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b1110 & cc & flags_00_03 {
     if (!cc) goto <done>;
     push32(&:4 inst_next);
-    call r32b_dsp;
+    call [r32b_dsp];
 <done>
 }
 :ret cc,r32b_dsp  is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b1111 & cc & flags_00_03 {
@@ -263,11 +267,15 @@
 :chg   imm3_00_02,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b0 & imm3_00_02 { chg(imm3_00_02,r32b_eam); }
 :bit   imm3_00_02,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b1100 & op_03=0b1 & imm3_00_02 { bit(imm3_00_02,r32b_eam); }
 
-:jp cc,r32b_mem   is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b1101 & cc & flags_00_03 { if (cc) goto r32b_mem; }
+:jp cc,r32b_mem   is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b1101 & cc & flags_00_03 {
+    if (!cc) goto <done>;
+    goto [r32b_mem];
+<done>
+}
 :call cc,r32b_mem is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b1110 & cc & flags_00_03 {
     if (!cc) goto <done>;
     push32(&:4 inst_next);
-    call r32b_mem;
+    call [r32b_mem];
 <done>
 }
 :ret cc,r32b_mem  is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b1111 & cc & flags_00_03 {
