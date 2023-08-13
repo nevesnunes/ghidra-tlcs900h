@@ -325,13 +325,39 @@ macro cp32(op1, op2) {
     cp(op1, op2);
     $(H_flag) = 0; # Undefined
 }
+macro inc(op1, op2) {
+    # #3 in operands indicates from 1 to 8; object codes correspond from 1 to 7,0.
+    local tmp_imm = op2;
+    if (tmp_imm != 0) goto <result>;
+    tmp_imm = 8;
+<result>
+    add(op1, tmp_imm);
+}
 macro incwl(op1, op2) {
+    # #3 in operands indicates from 1 to 8; object codes correspond from 1 to 7,0.
+    local tmp_imm:1 = op2;
+    if (tmp_imm != 0) goto <result>;
+    tmp_imm = 8;
+<result>
     # With the INC #3,r instruction, if the operand is a word or a long word, no flags change.
-    op1 = op1 + op2;
+    op1 = op1 + zext(tmp_imm);
+}
+macro dec(op1, op2) {
+    # #3 in operands indicates from 1 to 8; object codes correspond from 1 to 7,0.
+    local tmp_imm = op2;
+    if (tmp_imm != 0) goto <result>;
+    tmp_imm = 8;
+<result>
+    sub(op1, tmp_imm);
 }
 macro decwl(op1, op2) {
+    # #3 in operands indicates from 1 to 8; object codes correspond from 1 to 7,0.
+    local tmp_imm:1 = op2;
+    if (tmp_imm != 0) goto <result>;
+    tmp_imm = 8;
+<result>
     # With the DEC #3,r instruction, if the operand is a word or a long word, no flags change.
-    op1 = op1 - op2;
+    op1 = op1 - zext(tmp_imm);
 }
 macro neg(op1) {
     local tmp_op1 = op1;
@@ -339,38 +365,32 @@ macro neg(op1) {
     setSubtractFlags(op1, 0, tmp_op1);
     $(C_flag) = sborrow(0, tmp_op1);
 }
-macro extz16(dst) {
-    local temp:2 = dst:2;
-    dst = zext(temp);
-}
-macro extz32(dst) {
-    local temp:4 = dst:4;
-    dst = zext(temp);
-}
-macro exts16(dst) {
-    local temp:2 = dst:2;
-    dst = sext(temp);
-}
-macro exts32(dst) {
-    local temp:4 = dst:4;
-    dst = sext(temp);
-}
+macro extz16(dst) { dst = zext(dst:1); }
+macro extz32(dst) { dst = zext(dst:2); }
+macro exts16(dst) { dst = sext(dst:1); }
+macro exts32(dst) { dst = sext(dst:2); }
 macro paa(dst) {
     if ((dst & 1) == 0) goto <end>;
     dst = dst + 1;
 <end>
 }
-macro mul(op1, op2) {
-    op1 = op1 * op2;
+macro mul8(op1, op2)   { op1 = zext(op1:1) * zext(op2); }
+macro mul16(op1, op2)  { op1 = zext(op1:2) * zext(op2); }
+macro mul(op1, op2)    { op1 = op1 * op2; }
+macro muls8(op1, op2)  { op1 = sext(op1:1) * sext(op2); }
+macro muls16(op1, op2) { op1 = sext(op1:2) * sext(op2); }
+macro muls(op1, op2)   { op1 = sext(op1) * sext(op2); }
+macro div(op1, op2)    {
+    $(V_flag) = op2 == 0;
+    local quotient = zext(op1) / zext(op2); 
+    local remainder = zext(op1) % zext(op2);
+    op1 = ((remainder & 0xffff) << 16) | quotient;
 }
-macro muls(op1, op2) {
-    op1 = op1 * op2;
-}
-macro div(op1, op2) {
-    op1 = op1 / op2;
-}
-macro divs(op1, op2) {
-    op1 = op1 s/ op2;
+macro divs(op1, op2)   {
+    $(V_flag) = op2 == 0;
+    local quotient = sext(op1) s/ sext(op2); 
+    local remainder = sext(op1) % sext(op2);
+    op1 = ((remainder & 0xffff) << 16) | quotient;
 }
 macro mula(dst) {
     local mul_result:2 = (*:2 XDE) * (*:2 XHL);
@@ -426,15 +446,27 @@ macro and(op1, op2) {
     setLogicalFlags(op1);
     $(H_flag) = 1;
 }
+macro and32(op1, op2) {
+    and(op1, op2);
+    $(V_flag) = 0; # Undefined
+}
 macro or(op1, op2) {
     op1 = op1 | op2;
     setLogicalFlags(op1);
     $(H_flag) = 0;
 }
+macro or32(op1, op2) {
+    or(op1, op2);
+    $(V_flag) = 0; # Undefined
+}
 macro xor(op1, op2) {
     op1 = op1 ^ op2;
     setLogicalFlags(op1);
     $(H_flag) = 0;
+}
+macro xor32(op1, op2) {
+    xor(op1, op2);
+    $(V_flag) = 0; # Undefined
 }
 macro cpl(op1) {
     op1 = ~op1;
@@ -498,41 +530,6 @@ macro tset(n, dst) {
 }
 
 # (7) Special operations and CPU control
-macro push32(val32) {
-    XSP = XSP - 4;
-    *:4 XSP = val32;
-}
-macro push16(val16) {
-    XSP = XSP - 2;
-    *:2 XSP = val16;
-}
-macro push8(val8) {
-    XSP = XSP - 1;
-    *:1 XSP = val8;
-}
-macro pop32(ret32) {
-    ret32 = *:4 XSP;
-    XSP = XSP + 4;
-}
-macro pop16(ret16) {
-    ret16 = *:2 XSP;
-    XSP = XSP + 2;
-}
-macro pop8(ret8) {
-    ret8 = *:1 XSP;
-    XSP = XSP + 1;
-}
-macro link(dst, n) {
-    XSP = XSP - 4;
-    *:4 XSP = dst;
-    dst = XSP;
-    XSP = XSP + n;
-}
-macro unlk(dst) {
-    XSP = dst;
-    XSP = XSP + 4;
-    dst = *:4 XSP;
-}
 macro sync_banks(prev_rfp) {
 # To simplify register updates, we only synchronize
 # the current and previous banks when switching to another bank.
@@ -576,6 +573,48 @@ macro switch_bank(i) {
 <prev_ld>
     sync_banks(prev_rfp);
 }
+macro push32(val32) {
+    XSP = XSP - 4;
+    *:4 XSP = val32;
+}
+macro push16(val16) {
+    XSP = XSP - 2;
+    *:2 XSP = val16;
+}
+macro push8(val8) {
+    XSP = XSP - 1;
+    *:1 XSP = val8;
+}
+macro pop32(ret32) {
+    ret32 = *:4 XSP;
+    XSP = XSP + 4;
+}
+macro pop16(ret16) {
+    ret16 = *:2 XSP;
+    XSP = XSP + 2;
+}
+macro pop8(ret8) {
+    ret8 = *:1 XSP;
+    XSP = XSP + 1;
+}
+macro pop16_sr() {
+    local prev_rfp = $(RFP);
+    pop16(SR);
+    if (prev_rfp == $(RFP)) goto <end>;
+    sync_banks(prev_rfp);
+<end>
+}
+macro link(dst, n) {
+    XSP = XSP - 4;
+    *:4 XSP = dst;
+    dst = XSP;
+    XSP = XSP + n;
+}
+macro unlk(dst) {
+    XSP = dst;
+    XSP = XSP + 4;
+    dst = *:4 XSP;
+}
 
 # (8) Rotate and shift
 macro rlc(count, reg, width) {
@@ -596,7 +635,6 @@ macro rr(count, reg, width) {
 }
 macro sll(count, reg) {
     local i = count;
-    local tmp_C = $(C_flag);
 <cycle>
     if (i == 0:1) goto <end>;
     $(C_flag) = reg s< 0;
@@ -669,9 +707,9 @@ addr24i24:  imm24 is imm24 { export *:3 imm24; }
 addr24i32:  imm24 is imm24 { export *:4 imm24; }
 
 # Register
-addr32m8:   w_rm32_00_02 is w_rm32_00_02 { export *:1 w_rm32_00_02; }
-addr32m16:  w_rm32_00_02 is w_rm32_00_02 { export *:2 w_rm32_00_02; }
-addr32m32:  w_rm32_00_02 is w_rm32_00_02 { export *:4 w_rm32_00_02; }
+addr32m8:  w_rm32_00_02 is w_rm32_00_02 { export *:1 w_rm32_00_02; }
+addr32m16: w_rm32_00_02 is w_rm32_00_02 { export *:2 w_rm32_00_02; }
+addr32m32: w_rm32_00_02 is w_rm32_00_02 { export *:4 w_rm32_00_02; }
 
 # Register indirect + post-increment / pre-decrement
 r32b_mem: r32b_02_07     is op_06=0b1 & op_00_03=0b0011 ; r32b_02_07 & op_00_01=0b00 { export r32b_02_07; }
@@ -680,10 +718,10 @@ r32b_mem: r32b_02_07^"+" is op_06=0b1 & op_00_03=0b0101 ; r32b_02_07 & op_00_01 
 r32b_eam: r32b_mem is r32b_mem { export *:4 r32b_mem; }
 
 # Register displacement
-r32d8:      w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = (w_rm32_00_02 + w_imm8_08_15); export tmp; }
-addr32d8:   r32d8 is r32d8 { export *:1 r32d8; }
-addr32d16:  r32d8 is r32d8 { export *:2 r32d8; }
-addr32d32:  r32d8 is r32d8 { export *:4 r32d8; }
+r32d8:     w_rm32_00_02^"+"^w_imm8_08_15 is w_rm32_00_02 & w_imm8_08_15 { tmp:4 = (w_rm32_00_02 + w_imm8_08_15); export tmp; }
+addr32d8:  r32d8 is r32d8 { export *:1 r32d8; }
+addr32d16: r32d8 is r32d8 { export *:2 r32d8; }
+addr32d32: r32d8 is r32d8 { export *:4 r32d8; }
 
 # Banked register index + displacement
 r32b_dsp: l_r32b_02_07^"+"^l_imm16_08_23 is l_r32b_02_07 & l_op_00_01=0b01 & l_imm16_08_23 { tmp:4 = (l_r32b_02_07 + l_imm16_08_23); export tmp; }
@@ -737,18 +775,12 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :nop     is op_00_07=0x00 {}
 :normal  is op_00_07=0x01 { normal_mode(); }
 :push SR is op_00_07=0x02 & SR { push16(SR); }
-:pop SR  is op_00_07=0x03 & SR {
-    local prev_rfp = $(RFP);
-    pop16(SR);
-    if (prev_rfp == $(RFP)) goto <end>;
-    sync_banks(prev_rfp);
-<end>
-}
+:pop SR  is op_00_07=0x03 & SR { pop16_sr(); }
 :max     is op_00_07=0x04 { maximum_mode(); }
 :halt    is op_00_07=0x05 { halt(); }
 :ei imm8 is op_00_07=0x06 ; imm8 { $(IFF) = imm8 & 0b111; }
 :reti    is op_00_07=0x07 {
-    pop16(SR);
+    pop16_sr();
     pop32(PC);
     return [PC];
 }
@@ -756,26 +788,28 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :push imm8         is op_00_07=0x09 ; imm8 { push8(imm8:1); }
 :ldw (addr8),imm16 is op_00_07=0x0a ; addr8 ; imm16 { addr8 = imm16; }
 :pushw imm16       is op_00_07=0x0b ; imm16 { push16(imm16:2); }
-:incf              is op_00_07=0x0c { switch_bank($(RFP) + 1); }
-:decf              is op_00_07=0x0d { switch_bank($(RFP) - 1); }
-:ret               is op_00_07=0x0e {
+:incf is op_00_07=0x0c { switch_bank($(RFP) + 1); }
+:decf is op_00_07=0x0d { switch_bank($(RFP) - 1); }
+:ret  is op_00_07=0x0e {
     pop32(PC);
     return [PC];
 }
-:retd imm16        is op_00_07=0x0f ; imm16 {
+:retd imm16 is op_00_07=0x0f ; imm16 {
     pop32(PC);
     XSP = XSP + imm16;
     return [PC];
 }
 
-:rcf         is op_00_07=0x10 { $(H_flag) = 0; $(V_flag) = 0; $(C_flag) = 0; }
-:scf         is op_00_07=0x11 { $(H_flag) = 0; $(V_flag) = 0; $(C_flag) = 1; }
-:ccf         is op_00_07=0x12 {
+# User manual has a typo on RCF's flags caption, which doesn't match
+# its diagram. Update the same flags as SCF, which has consistent info.
+:rcf is op_00_07=0x10 { $(N_flag) = 0; $(C_flag) = 0; $(H_flag) = 0; }
+:scf is op_00_07=0x11 { $(N_flag) = 0; $(C_flag) = 1; $(H_flag) = 0; }
+:ccf is op_00_07=0x12 {
     $(N_flag) = 0;
     $(C_flag) = ~$(C_flag);
     $(H_flag) = 0; # Undefined
 }
-:zcf         is op_00_07=0x13 {
+:zcf is op_00_07=0x13 {
     $(N_flag) = 0;
     $(C_flag) = ~$(Z_flag);
     $(H_flag) = 0; # Undefined
@@ -813,7 +847,7 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :jrl cc, rel16 is op_04_07=0b0111 & cc & flags_00_03 ; rel16 { if (cc) goto rel16; }
 
 :ldx (addr8),imm8 is op_00_07=0xf7 ; addr8 ; imm8 { addr8 = imm8; }
-:swi imm3_00_02 is op_04_07=0b1111 & op_03=0b1 & imm3_00_02 {
+:swi imm3_00_02   is op_04_07=0b1111 & op_03=0b1 & imm3_00_02 {
     push32(&:4 inst_next);
     push16(SR);
     $(SYSM) = 1;
@@ -838,18 +872,23 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :neg  w_rm8_00_02        is w_op_08_15=0b0111 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { neg(w_rm8_00_02); }
 :neg  w_rm16_00_02       is w_op_08_15=0b0111 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { neg(w_rm16_00_02); }
 :neg  w_rm32_00_02       is w_op_08_15=0b0111 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { neg(w_rm32_00_02); }
-:mul  w_rm8_00_02,imm8   is w_op_08_15=0b1000 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; imm8  { mul(w_rm8_00_02,imm8);}
-:mul  w_rm16_00_02,imm16 is w_op_08_15=0b1000 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { mul(w_rm16_00_02,imm16);}
-:mul  w_rm32_00_02,imm32 is w_op_08_15=0b1000 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { mul(w_rm32_00_02,imm32); }
-:muls w_rm8_00_02,imm8   is w_op_08_15=0b1001 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; imm8  { muls(w_rm8_00_02,imm8); }
-:muls w_rm16_00_02,imm16 is w_op_08_15=0b1001 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { muls(w_rm16_00_02,imm16); }
-:muls w_rm32_00_02,imm32 is w_op_08_15=0b1001 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { muls(w_rm32_00_02,imm32); }
-:div  w_rm8_00_02,imm8   is w_op_08_15=0b1010 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; imm8  { div(w_rm8_00_02,imm8); }
-:div  w_rm16_00_02,imm16 is w_op_08_15=0b1010 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { div(w_rm16_00_02,imm16); }
-:div  w_rm32_00_02,imm32 is w_op_08_15=0b1010 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { div(w_rm32_00_02,imm32); }
-:divs w_rm8_00_02,imm8   is w_op_08_15=0b1011 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  ; imm8  { divs(w_rm8_00_02,imm8); }
-:divs w_rm16_00_02,imm16 is w_op_08_15=0b1011 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { divs(w_rm16_00_02,imm16); }
-:divs w_rm32_00_02,imm32 is w_op_08_15=0b1011 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { divs(w_rm32_00_02,imm32); }
+
+# These (and other) mul/div instructions use larger registers
+# than specified in the User Manual. This is a workaround for
+# expanded storage of the operation result without register space
+# hacks. We use truncation in macros to compute expected results.
+:mul  w_rm16_00_02,imm8  is w_op_08_15=0b1000 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { mul8(w_rm16_00_02,imm8:1); }
+:mul  w_rm32_00_02,imm16 is w_op_08_15=0b1000 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { mul16(w_rm32_00_02,imm16:2); }
+:mul  w_rm32_00_02,imm32 is w_op_08_15=0b1000 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { mul(w_rm32_00_02,imm32:4); }
+:muls w_rm16_00_02,imm8  is w_op_08_15=0b1001 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { muls8(w_rm16_00_02,imm8:1); }
+:muls w_rm32_00_02,imm16 is w_op_08_15=0b1001 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { muls16(w_rm32_00_02,imm16:2); }
+:muls w_rm32_00_02,imm32 is w_op_08_15=0b1001 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { muls(w_rm32_00_02,imm32:4); }
+:div  w_rm16_00_02,imm8  is w_op_08_15=0b1010 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { div(w_rm16_00_02,imm8:1); }
+:div  w_rm32_00_02,imm16 is w_op_08_15=0b1010 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { div(w_rm32_00_02,imm16:2); }
+:div  w_rm32_00_02,imm32 is w_op_08_15=0b1010 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { div(w_rm32_00_02,imm32:4); }
+:divs w_rm16_00_02,imm8  is w_op_08_15=0b1011 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { divs(w_rm16_00_02,imm8:1); }
+:divs w_rm32_00_02,imm16 is w_op_08_15=0b1011 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { divs(w_rm32_00_02,imm16:2); }
+:divs w_rm32_00_02,imm32 is w_op_08_15=0b1011 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { divs(w_rm32_00_02,imm32:4); }
 
 :link w_rm32_00_02,imm16 is w_op_08_15=0x0c     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { link(w_rm32_00_02, imm16); }
 :unlk w_rm32_00_02       is w_op_08_15=0x0d     & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { unlk(w_rm32_00_02); }
@@ -934,10 +973,10 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :divs w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { divs(w_rn8_08_10,w_rm8_00_02); }
 :divs w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { divs(w_rn16_08_10,w_rm16_00_02); }
 :divs w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { divs(w_rn32_08_10,w_rm32_00_02); }
-:inc  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { add(w_rm8_00_02,w_imm3_08_10); }
+:inc  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { inc(w_rm8_00_02,w_imm3_08_10); }
 :inc  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { incwl(w_rm16_00_02,w_imm3_08_10); }
 :inc  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { incwl(w_rm32_00_02,w_imm3_08_10); }
-:dec  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { sub(w_rm8_00_02,w_imm3_08_10); }
+:dec  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { dec(w_rm8_00_02,w_imm3_08_10); }
 :dec  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { decwl(w_rm16_00_02,w_imm3_08_10); }
 :dec  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { decwl(w_rm32_00_02,w_imm3_08_10); }
 :scc  w_cc,w_rm8_00_02           is w_op_12_15=0b0111 & w_cc & w_flags_08_11 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { w_rm8_00_02 = zext(w_cc); }
@@ -957,13 +996,13 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :sbc  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { sbc32(w_rn32_08_10,w_rm32_00_02); }
 :and  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { and(w_rn8_08_10,w_rm8_00_02); }
 :and  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { and(w_rn16_08_10,w_rm16_00_02); }
-:and  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { and(w_rn32_08_10,w_rm32_00_02); }
+:and  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { and32(w_rn32_08_10,w_rm32_00_02); }
 :xor  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { xor(w_rn8_08_10,w_rm8_00_02); }
 :xor  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { xor(w_rn16_08_10,w_rm16_00_02); }
-:xor  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { xor(w_rn32_08_10,w_rm32_00_02); }
+:xor  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { xor32(w_rn32_08_10,w_rm32_00_02); }
 :or   w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { or(w_rn8_08_10,w_rm8_00_02); }
 :or   w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { or(w_rn16_08_10,w_rm16_00_02); }
-:or   w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { or(w_rn32_08_10,w_rm32_00_02); }
+:or   w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { or32(w_rn32_08_10,w_rm32_00_02); }
 :cp   w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { cp(w_rn8_08_10,w_rm8_00_02); }
 :cp   w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { cp(w_rn16_08_10,w_rm16_00_02); }
 :cp   w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { cp32(w_rn32_08_10,w_rm32_00_02); }
@@ -995,13 +1034,13 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :sbc w_rm32_00_02,imm32 is w_op_08_15=0xcb & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { sbc32(w_rm32_00_02,imm32); }
 :and w_rm8_00_02,imm8   is w_op_08_15=0xcc & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { and(w_rm8_00_02,imm8); }
 :and w_rm16_00_02,imm16 is w_op_08_15=0xcc & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { and(w_rm16_00_02,imm16); }
-:and w_rm32_00_02,imm32 is w_op_08_15=0xcc & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { and(w_rm32_00_02,imm32); }
+:and w_rm32_00_02,imm32 is w_op_08_15=0xcc & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { and32(w_rm32_00_02,imm32); }
 :xor w_rm8_00_02,imm8   is w_op_08_15=0xcd & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { xor(w_rm8_00_02,imm8); }
 :xor w_rm16_00_02,imm16 is w_op_08_15=0xcd & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { xor(w_rm16_00_02,imm16); }
-:xor w_rm32_00_02,imm32 is w_op_08_15=0xcd & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { xor(w_rm32_00_02,imm32); }
+:xor w_rm32_00_02,imm32 is w_op_08_15=0xcd & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { xor32(w_rm32_00_02,imm32); }
 :or  w_rm8_00_02,imm8   is w_op_08_15=0xce & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { or(w_rm8_00_02,imm8); }
 :or  w_rm16_00_02,imm16 is w_op_08_15=0xce & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { or(w_rm16_00_02,imm16); }
-:or  w_rm32_00_02,imm32 is w_op_08_15=0xce & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { or(w_rm32_00_02,imm32); }
+:or  w_rm32_00_02,imm32 is w_op_08_15=0xce & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { or32(w_rm32_00_02,imm32); }
 :cp  w_rm8_00_02,imm8   is w_op_08_15=0xcf & w_rm8_00_02  & w_op_04_07=0b1100 & w_op_03=0b1 ; imm8  { cp(w_rm8_00_02,imm8); }
 :cp  w_rm16_00_02,imm16 is w_op_08_15=0xcf & w_rm16_00_02 & w_op_04_07=0b1101 & w_op_03=0b1 ; imm16 { cp(w_rm16_00_02,imm16); }
 :cp  w_rm32_00_02,imm32 is w_op_08_15=0xcf & w_rm32_00_02 & w_op_04_07=0b1110 & w_op_03=0b1 ; imm32 { cp32(w_rm32_00_02,imm32); }
@@ -1135,9 +1174,9 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :divs  w_rn8_08_10,(addr32m8)    is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { divs(w_rn8_08_10,addr32m8); }
 :divs  w_rn16_08_10,(addr32m16)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { divs(w_rn16_08_10,addr32m16); }
 :divs  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { divs(w_rn32_08_10,addr32m32); }
-:inc   w_imm3_08_10,(addr32m8)   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { add(addr32m8,w_imm3_08_10); }
+:inc   w_imm3_08_10,(addr32m8)   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { inc(addr32m8,w_imm3_08_10); }
 :incw  w_imm3_08_10,(addr32m16)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { incwl(addr32m16,w_imm3_08_10); }
-:dec   w_imm3_08_10,(addr32m8)   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { sub(addr32m8,w_imm3_08_10); }
+:dec   w_imm3_08_10,(addr32m8)   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { dec(addr32m8,w_imm3_08_10); }
 :decw  w_imm3_08_10,(addr32m16)  is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { decwl(addr32m16,w_imm3_08_10); }
 :rlc   (addr32m8)                is w_op_08_15=0x78 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { rlc(1, addr32m8, 8); }
 :rlcw  (addr32m16)               is w_op_08_15=0x78 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { rlc(1, addr32m16, 16); }
@@ -1170,13 +1209,13 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :sbc   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1011 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sbc32(w_rn32_08_10,addr32m32); }
 :and   w_rn8_08_10,(addr32m8)    is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { and(w_rn8_08_10,(addr32m8)); }
 :and   w_rn16_08_10,(addr32m16)  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { and(w_rn16_08_10,addr32m16); }
-:and   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { and(w_rn32_08_10,addr32m32); }
+:and   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { and32(w_rn32_08_10,addr32m32); }
 :xor   w_rn8_08_10,(addr32m8)    is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { xor(w_rn8_08_10,addr32m8); }
 :xor   w_rn16_08_10,(addr32m16)  is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { xor(w_rn16_08_10,addr32m16); }
-:xor   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { xor(w_rn32_08_10,addr32m32); }
+:xor   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { xor32(w_rn32_08_10,addr32m32); }
 :or    w_rn8_08_10,(addr32m8)    is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { or(w_rn8_08_10,addr32m8); }
 :or    w_rn16_08_10,(addr32m16)  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { or(w_rn16_08_10,addr32m16); }
-:or    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { or(w_rn32_08_10,addr32m32); }
+:or    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1110 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { or32(w_rn32_08_10,addr32m32); }
 :cp    w_rn8_08_10,(addr32m8)    is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { cp(w_rn8_08_10,addr32m8); }
 :cp    w_rn16_08_10,(addr32m16)  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { cp(w_rn16_08_10,addr32m16); }
 :cp    w_rn32_08_10,(addr32m32)  is w_op_12_15=0b1111 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { cp32(w_rn32_08_10,addr32m32); }
@@ -1197,13 +1236,13 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :sbc (addr32m32),w_rn32_08_10  is w_op_12_15=0b1011 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { sbc32(addr32m32,w_rn32_08_10); }
 :and (addr32m8),w_rn8_08_10    is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { and(addr32m8,w_rn8_08_10); }
 :and (addr32m16),w_rn16_08_10  is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { and(addr32m16,w_rn16_08_10); }
-:and (addr32m32),w_rn32_08_10  is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { and(addr32m32,w_rn32_08_10); }
+:and (addr32m32),w_rn32_08_10  is w_op_12_15=0b1100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { and32(addr32m32,w_rn32_08_10); }
 :xor (addr32m8),w_rn8_08_10    is w_op_12_15=0b1101 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { xor(addr32m8,w_rn8_08_10); }
 :xor (addr32m16),w_rn16_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { xor(addr32m16,w_rn16_08_10); }
-:xor (addr32m32),w_rn32_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { xor(addr32m32,w_rn32_08_10); }
+:xor (addr32m32),w_rn32_08_10  is w_op_12_15=0b1101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { xor32(addr32m32,w_rn32_08_10); }
 :or  (addr32m8),w_rn8_08_10    is w_op_12_15=0b1110 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { or(addr32m8,w_rn8_08_10); }
 :or  (addr32m16),w_rn16_08_10  is w_op_12_15=0b1110 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { or(addr32m16,w_rn16_08_10); }
-:or  (addr32m32),w_rn32_08_10  is w_op_12_15=0b1110 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { or(addr32m32,w_rn32_08_10); }
+:or  (addr32m32),w_rn32_08_10  is w_op_12_15=0b1110 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { or32(addr32m32,w_rn32_08_10); }
 :cp  (addr32m8),w_rn8_08_10    is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { cp(addr32m8,w_rn8_08_10); }
 :cp  (addr32m16),w_rn16_08_10  is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { cp(addr32m16,w_rn16_08_10); }
 :cp  (addr32m32),w_rn32_08_10  is w_op_12_15=0b1111 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { cp32(addr32m32,w_rn32_08_10); }
