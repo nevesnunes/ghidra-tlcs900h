@@ -7,17 +7,17 @@
 :ld (addr32d8),(addr16i8)   is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8  ; op_00_07=0b00010100 ; addr16i8 { addr32d8 = addr16i8; }
 :ld (addr32d16),(addr16i16) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d16 ; op_00_07=0b00010110 ; addr16i16 { addr32d16 = addr16i16; }
 
-:lda r16,r32d8          is w_op_04_07=0b1011 & w_op_03=0b1 & r32d8 ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32d8:2; }
-:lda r32,r32d8          is w_op_04_07=0b1011 & w_op_03=0b1 & r32d8 ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32d8; }
-:ld (addr32d8),r8       is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8  ; op_04_07=0b0100 & op_03=0b0 & r8 { addr32d8 = r8; }
-:ld (addr32d16),r16     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr32d16 = r16; }
-:ld (addr32d32),r32     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr32d32 = r32; }
+:lda r16,r32d8      is w_op_04_07=0b1011 & w_op_03=0b1 & r32d8     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32d8:2; }
+:lda r32,r32d8      is w_op_04_07=0b1011 & w_op_03=0b1 & r32d8     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32d8; }
+:ld (addr32d8),r8   is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr32d8 = r8; }
+:ld (addr32d16),r16 is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr32d16 = r16; }
+:ld (addr32d32),r32 is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr32d32 = r32; }
 
-:andcf A,(addr32d8)     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101000 & A { andcf(A,addr32d8); }
-:orcf  A,(addr32d8)     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101001 & A { orcf(A,addr32d8); }
-:xorcf A,(addr32d8)     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101010 & A { xorcf(A,addr32d8); }
-:ldcf  A,(addr32d8)     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101011 & A { ldcf(A,addr32d8); }
-:stcf  A,(addr32d8)     is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101100 & A { stcf(A,addr32d8); }
+:andcf A,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101000 & A { andcf(A,addr32d8); }
+:orcf  A,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101001 & A { orcf(A,addr32d8); }
+:xorcf A,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101010 & A { xorcf(A,addr32d8); }
+:ldcf  A,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101011 & A { ldcf(A,addr32d8); }
+:stcf  A,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_00_07=0b00101100 & A { stcf(A,addr32d8); }
 
 :andcf imm3_00_02,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,addr32d8); }
 :orcf  imm3_00_02,(addr32d8) is w_op_04_07=0b1011 & w_op_03=0b1 & addr32d8 ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,addr32d8); }
@@ -53,17 +53,17 @@
 :ld (addr8i8),(addr16i8)   is op_00_07=0xf0 ; addr8i8  ; op_00_07=0b00010100 ; addr16i8 { addr8i8 = addr16i8; }
 :ld (addr8i16),(addr16i16) is op_00_07=0xf0 ; addr8i16 ; op_00_07=0b00010110 ; addr16i16 { addr8i16 = addr16i16; }
 
-:lda r16,imm8          is op_00_07=0xf0 ; imm8     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm8; }
-:lda r32,imm8          is op_00_07=0xf0 ; imm8     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm8; }
-:ld (addr8i8),r8       is op_00_07=0xf0 ; addr8i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr8i8 = r8; }
-:ld (addr8i16),r16     is op_00_07=0xf0 ; addr8i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr8i16 = r16; }
-:ld (addr8i32),r32     is op_00_07=0xf0 ; addr8i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr8i32 = r32; }
+:lda r16,imm8      is op_00_07=0xf0 ; imm8     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm8; }
+:lda r32,imm8      is op_00_07=0xf0 ; imm8     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm8; }
+:ld (addr8i8),r8   is op_00_07=0xf0 ; addr8i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr8i8 = r8; }
+:ld (addr8i16),r16 is op_00_07=0xf0 ; addr8i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr8i16 = r16; }
+:ld (addr8i32),r32 is op_00_07=0xf0 ; addr8i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr8i32 = r32; }
 
-:andcf A,(addr8i8)     is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101000 & A { andcf(A,addr8i8); }
-:orcf  A,(addr8i8)     is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101001 & A { orcf(A,addr8i8); }
-:xorcf A,(addr8i8)     is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101010 & A { xorcf(A,addr8i8); }
-:ldcf  A,(addr8i8)     is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101011 & A { ldcf(A,addr8i8); }
-:stcf  A,(addr8i8)     is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101100 & A { stcf(A,addr8i8); }
+:andcf A,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101000 & A { andcf(A,addr8i8); }
+:orcf  A,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101001 & A { orcf(A,addr8i8); }
+:xorcf A,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101010 & A { xorcf(A,addr8i8); }
+:ldcf  A,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101011 & A { ldcf(A,addr8i8); }
+:stcf  A,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_00_07=0b00101100 & A { stcf(A,addr8i8); }
 
 :andcf imm3_00_02,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,addr8i8); }
 :orcf  imm3_00_02,(addr8i8) is op_00_07=0xf0 ; addr8i8 ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,addr8i8); }
@@ -99,28 +99,28 @@
 :ld (addr16i8),(addr_16i8)   is op_00_07=0xf1 ; addr16i8  ; op_00_07=0b00010100 ; addr_16i8 { addr16i8 = addr_16i8; }
 :ld (addr16i16),(addr_16i16) is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00010110 ; addr_16i16 { addr16i16 = addr_16i16; }
 
-:lda r16,imm16        is op_00_07=0xf1 ; imm16    ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm16; }
-:lda r32,imm16        is op_00_07=0xf1 ; imm16    ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm16; }
-:ld (addr16i8),r8     is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b0100 & op_03=0b0 & r8  { addr16i8 = r8; }
-:ld (addr16),r16      is op_00_07=0xf1 ; addr16   ; op_04_07=0b0101 & op_03=0b0 & r16 { addr16 = r16; }
-:ld (addr16),r32      is op_00_07=0xf1 ; addr16   ; op_04_07=0b0110 & op_03=0b0 & r32 { local tmp = r32 & 0xffff; addr16 = tmp:2; }
+:lda r16,imm16      is op_00_07=0xf1 ; imm16    ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm16; }
+:lda r32,imm16      is op_00_07=0xf1 ; imm16    ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm16; }
+:ld (addr16i8),r8   is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b0100 & op_03=0b0 & r8  { addr16i8 = r8; }
+:ld (addr16),r16    is op_00_07=0xf1 ; addr16   ; op_04_07=0b0101 & op_03=0b0 & r16 { addr16 = r16; }
+:ld (addr16),r32    is op_00_07=0xf1 ; addr16   ; op_04_07=0b0110 & op_03=0b0 & r32 { local tmp = r32 & 0xffff; addr16 = tmp:2; }
 
-:andcf A,(addr16i16)     is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00101000 & A { andcf(A,addr16i16); }
-:orcf  A,(addr16i16)     is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00101001 & A { orcf(A,addr16i16); }
-:xorcf A,(addr16i16)     is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00101010 & A { xorcf(A,addr16i16); }
-:ldcf  A,(addr16i16)     is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00101011 & A { ldcf(A,addr16i16); }
-:stcf  A,(addr16i16)     is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00101100 & A { stcf(A,addr16i16); }
+:andcf A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101000 & A { andcf(A,addr16i8); }
+:orcf  A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101001 & A { orcf(A,addr16i8); }
+:xorcf A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101010 & A { xorcf(A,addr16i8); }
+:ldcf  A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101011 & A { ldcf(A,addr16i8); }
+:stcf  A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101100 & A { stcf(A,addr16i8); }
 
-:andcf imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,addr16i16); }
-:orcf  imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,addr16i16); }
-:xorcf imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1001 & op_03=0b0 & imm3_00_02 { xorcf(imm3_00_02,addr16i16); }
-:ldcf  imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1001 & op_03=0b1 & imm3_00_02 { ldcf(imm3_00_02,addr16i16); }
-:stcf  imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1010 & op_03=0b0 & imm3_00_02 { stcf(imm3_00_02,addr16i16); }
-:tset  imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1010 & op_03=0b1 & imm3_00_02 { tset(imm3_00_02,addr16i16); }
-:res   imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1011 & op_03=0b0 & imm3_00_02 { res(imm3_00_02,addr16i16); }
-:set   imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1011 & op_03=0b1 & imm3_00_02 { set(imm3_00_02,addr16i16); }
-:chg   imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1100 & op_03=0b0 & imm3_00_02 { chg(imm3_00_02,addr16i16); }
-:bit   imm3_00_02,(addr16i16) is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1100 & op_03=0b1 & imm3_00_02 { bit(imm3_00_02,addr16i16); }
+:andcf imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,addr16i8); }
+:orcf  imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,addr16i8); }
+:xorcf imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1001 & op_03=0b0 & imm3_00_02 { xorcf(imm3_00_02,addr16i8); }
+:ldcf  imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1001 & op_03=0b1 & imm3_00_02 { ldcf(imm3_00_02,addr16i8); }
+:stcf  imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1010 & op_03=0b0 & imm3_00_02 { stcf(imm3_00_02,addr16i8); }
+:tset  imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1010 & op_03=0b1 & imm3_00_02 { tset(imm3_00_02,addr16i8); }
+:res   imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1011 & op_03=0b0 & imm3_00_02 { res(imm3_00_02,addr16i8); }
+:set   imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1011 & op_03=0b1 & imm3_00_02 { set(imm3_00_02,addr16i8); }
+:chg   imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1100 & op_03=0b0 & imm3_00_02 { chg(imm3_00_02,addr16i8); }
+:bit   imm3_00_02,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b1100 & op_03=0b1 & imm3_00_02 { bit(imm3_00_02,addr16i8); }
 
 :jp cc,addr16i16   is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1101 & cc & flags_00_03 { if (cc) goto addr16i16; }
 :call cc,addr16i16 is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b1110 & cc & flags_00_03 {
@@ -145,28 +145,28 @@
 :ld (addr24i8),(addr16i8)   is op_00_07=0xf2 ; addr24i8  ; op_00_07=0b00010100 ; addr16i8 { addr24i8 = addr16i8; }
 :ld (addr24i16),(addr16i16) is op_00_07=0xf2 ; addr24i16 ; op_00_07=0b00010110 ; addr16i16 { addr24i16 = addr16i16; }
 
-:lda r16,imm24           is op_00_07=0xf2 ; imm24     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm24; }
-:lda r32,imm24           is op_00_07=0xf2 ; imm24     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm24; }
-:ld (addr24i8),r8        is op_00_07=0xf2 ; addr24i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr24i8 = r8; }
-:ld (addr24i16),r16      is op_00_07=0xf2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr24i16 = r16; }
-:ld (addr24i32),r32      is op_00_07=0xf2 ; addr24i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr24i32 = r32; }
+:lda r16,imm24      is op_00_07=0xf2 ; imm24     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm24; }
+:lda r32,imm24      is op_00_07=0xf2 ; imm24     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm24; }
+:ld (addr24i8),r8   is op_00_07=0xf2 ; addr24i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr24i8 = r8; }
+:ld (addr24i16),r16 is op_00_07=0xf2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr24i16 = r16; }
+:ld (addr24i32),r32 is op_00_07=0xf2 ; addr24i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr24i32 = r32; }
 
-:andcf A,(addr24i24)     is op_00_07=0xf2 ; addr24i24 ; op_00_07=0b00101000 & A { andcf(A,addr24i24); }
-:orcf  A,(addr24i24)     is op_00_07=0xf2 ; addr24i24 ; op_00_07=0b00101001 & A { orcf(A,addr24i24); }
-:xorcf A,(addr24i24)     is op_00_07=0xf2 ; addr24i24 ; op_00_07=0b00101010 & A { xorcf(A,addr24i24); }
-:ldcf  A,(addr24i24)     is op_00_07=0xf2 ; addr24i24 ; op_00_07=0b00101011 & A { ldcf(A,addr24i24); }
-:stcf  A,(addr24i24)     is op_00_07=0xf2 ; addr24i24 ; op_00_07=0b00101100 & A { stcf(A,addr24i24); }
+:andcf A,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_00_07=0b00101000 & A { andcf(A,addr24i8); }
+:orcf  A,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_00_07=0b00101001 & A { orcf(A,addr24i8); }
+:xorcf A,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_00_07=0b00101010 & A { xorcf(A,addr24i8); }
+:ldcf  A,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_00_07=0b00101011 & A { ldcf(A,addr24i8); }
+:stcf  A,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_00_07=0b00101100 & A { stcf(A,addr24i8); }
 
-:andcf imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,addr24i24); }
-:orcf  imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,addr24i24); }
-:xorcf imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1001 & op_03=0b0 & imm3_00_02 { xorcf(imm3_00_02,addr24i24); }
-:ldcf  imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1001 & op_03=0b1 & imm3_00_02 { ldcf(imm3_00_02,addr24i24); }
-:stcf  imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1010 & op_03=0b0 & imm3_00_02 { stcf(imm3_00_02,addr24i24); }
-:tset  imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1010 & op_03=0b1 & imm3_00_02 { tset(imm3_00_02,addr24i24); }
-:res   imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1011 & op_03=0b0 & imm3_00_02 { res(imm3_00_02,addr24i24); }
-:set   imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1011 & op_03=0b1 & imm3_00_02 { set(imm3_00_02,addr24i24); }
-:chg   imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1100 & op_03=0b0 & imm3_00_02 { chg(imm3_00_02,addr24i24); }
-:bit   imm3_00_02,(addr24i24) is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1100 & op_03=0b1 & imm3_00_02 { bit(imm3_00_02,addr24i24); }
+:andcf imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,addr24i8); }
+:orcf  imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,addr24i8); }
+:xorcf imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1001 & op_03=0b0 & imm3_00_02 { xorcf(imm3_00_02,addr24i8); }
+:ldcf  imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1001 & op_03=0b1 & imm3_00_02 { ldcf(imm3_00_02,addr24i8); }
+:stcf  imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1010 & op_03=0b0 & imm3_00_02 { stcf(imm3_00_02,addr24i8); }
+:tset  imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1010 & op_03=0b1 & imm3_00_02 { tset(imm3_00_02,addr24i8); }
+:res   imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1011 & op_03=0b0 & imm3_00_02 { res(imm3_00_02,addr24i8); }
+:set   imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1011 & op_03=0b1 & imm3_00_02 { set(imm3_00_02,addr24i8); }
+:chg   imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1100 & op_03=0b0 & imm3_00_02 { chg(imm3_00_02,addr24i8); }
+:bit   imm3_00_02,(addr24i8) is op_00_07=0xf2 ; addr24i8 ; op_04_07=0b1100 & op_03=0b1 & imm3_00_02 { bit(imm3_00_02,addr24i8); }
 
 :jp cc,addr24i24   is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1101 & cc & flags_00_03 { if (cc) goto addr24i24; }
 :call cc,addr24i24 is op_00_07=0xf2 ; addr24i24 ; op_04_07=0b1110 & cc & flags_00_03 {
@@ -185,24 +185,24 @@
 ### dst=>(mem+d16)
 ### dst=>(mem+drb)
 
-:ld (r32b_ead),imm8        is op_00_07=0xf3 ; r32b_ead  ; op_00_07=0b0000 ; imm8 { r32b_ead = imm8; }
-:ld (r32b_ead),imm16       is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b0010 ; imm16 { r32b_ead = imm16; }
+:ld (r32b_dsp),imm8        is op_00_07=0xf3 ; r32b_dsp  ; op_00_07=0b0000 ; imm8 { *:1 r32b_dsp = imm8; }
+:ld (r32b_dsp),imm16       is op_00_07=0xf3 ; r32b_dsp  ; op_00_07=0b0010 ; imm16 { *:2 r32b_dsp = imm16; }
 :pop (r32b_ead)            is op_00_07=0xf3 ; r32b_ead  ; op_00_07=0b0100 { pop8(r32b_ead); }
-:popw (r32b_ead)           is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b0110 { pop16(r32b_ead); }
-:ld (r32b_ead),(addr16i8)  is op_00_07=0xf3 ; r32b_ead  ; op_00_07=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b_ead = tmp; }
-:ld (r32b_ead),(addr16i16) is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b_ead = tmp; }
+:popw (r32b_ead)           is op_00_07=0xf3 ; r32b_ead  ; op_00_07=0b0110 { pop16(r32b_ead); }
+:ld (r32b_dsp),(addr16i8)  is op_00_07=0xf3 ; r32b_dsp  ; op_00_07=0b00010100 ; addr16i8 { *:1 r32b_dsp = addr16i8; }
+:ld (r32b_dsp),(addr16i16) is op_00_07=0xf3 ; r32b_dsp  ; op_00_07=0b00010110 ; addr16i16 { *:2 r32b_dsp = addr16i16; }
 
-:lda r16,r32b_dsp       is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32b_dsp:2; }
-:lda r32,r32b_dsp       is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32b_dsp; }
-:ld (r32b_ead),r8       is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b0100 & op_03=0b0 & r8  { r32b_ead = zext(r8); }
-:ld (r32b_ead),r16      is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b0101 & op_03=0b0 & r16 { r32b_ead = zext(r16); }
-:ld (r32b_ead),r32      is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b0110 & op_03=0b0 & r32 { r32b_ead = r32; }
+:lda r16,r32b_dsp   is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32b_dsp:2; }
+:lda r32,r32b_dsp   is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32b_dsp; }
+:ld (r32b_dsp),r8   is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b0100 & op_03=0b0 & r8  { *:1 r32b_dsp = r8; }
+:ld (r32b_dsp),r16  is op_00_07=0xf3 ; r32b_dsp ; op_04_07=0b0101 & op_03=0b0 & r16 { *:2 r32b_dsp = r16; }
+:ld (r32b_ead),r32  is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b0110 & op_03=0b0 & r32 { r32b_ead = r32; }
 
-:andcf A,(r32b_ead)     is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101000 & A { andcf(A,r32b_ead); }
-:orcf  A,(r32b_ead)     is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101001 & A { orcf(A,r32b_ead); }
-:xorcf A,(r32b_ead)     is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101010 & A { xorcf(A,r32b_ead); }
-:ldcf  A,(r32b_ead)     is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101011 & A { ldcf(A,r32b_ead); }
-:stcf  A,(r32b_ead)     is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101100 & A { stcf(A,r32b_ead); }
+:andcf A,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101000 & A { andcf(A,r32b_ead); }
+:orcf  A,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101001 & A { orcf(A,r32b_ead); }
+:xorcf A,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101010 & A { xorcf(A,r32b_ead); }
+:ldcf  A,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101011 & A { ldcf(A,r32b_ead); }
+:stcf  A,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_00_07=0b00101100 & A { stcf(A,r32b_ead); }
 
 :andcf imm3_00_02,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,r32b_ead); }
 :orcf  imm3_00_02,(r32b_ead) is op_00_07=0xf3 ; r32b_ead ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,r32b_ead); }
@@ -237,24 +237,24 @@
 ### dst=>(-xrr)
 ### dst=>(xrr+)
 
-:ld (r32b_eam),imm8        is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b0000 ; imm8 { r32b_eam = imm8; }
-:ld (r32b_eam),imm16       is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b0010 ; imm16 { r32b_eam = imm16; }
+:ld (r32b_mem),imm8        is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_00_07=0b0000 ; imm8 { *:1 r32b_mem = imm8; }
+:ld (r32b_mem),imm16       is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_00_07=0b0010 ; imm16 { *:2 r32b_mem = imm16; }
 :pop (r32b_eam)            is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b0100 { pop8(r32b_eam); }
 :popw (r32b_eam)           is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b0110 { pop16(r32b_eam); }
-:ld (r32b_eam),(addr16i8)  is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00010100 ; addr16i8 { local tmp:4 = zext(addr16i8); r32b_eam = tmp; }
-:ld (r32b_eam),(addr16i16) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00010110 ; addr16i16 { local tmp:4 = zext(addr16i16); r32b_eam = tmp; }
+:ld (r32b_mem),(addr16i8)  is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_00_07=0b00010100 ; addr16i8 { *:1 r32b_mem = addr16i8; }
+:ld (r32b_mem),(addr16i16) is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_00_07=0b00010110 ; addr16i16 { *:2 r32b_mem = addr16i16; }
 
-:lda r16,r32b_mem       is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32b_mem:2; }
-:lda r32,r32b_mem       is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32b_mem; }
-:ld (r32b_eam),r8       is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b0100 & op_03=0b0 & r8  { r32b_eam = zext(r8); }
-:ld (r32b_eam),r16      is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b0101 & op_03=0b0 & r16 { r32b_eam = zext(r16); }
-:ld (r32b_eam),r32      is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b0110 & op_03=0b0 & r32 { r32b_eam = r32; }
+:lda r16,r32b_mem   is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = r32b_mem:2; }
+:lda r32,r32b_mem   is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = r32b_mem; }
+:ld (r32b_mem),r8   is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b0100 & op_03=0b0 & r8  { *:1 r32b_mem = r8; }
+:ld (r32b_mem),r16  is (op_07=0b1 & op_04_05=0b11) ... & r32b_mem ; op_04_07=0b0101 & op_03=0b0 & r16 { *:2 r32b_mem = r16; }
+:ld (r32b_eam),r32  is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b0110 & op_03=0b0 & r32 { r32b_eam = r32; }
 
-:andcf A,(r32b_eam)     is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101000 & A { andcf(A,r32b_eam); }
-:orcf  A,(r32b_eam)     is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101001 & A { orcf(A,r32b_eam); }
-:xorcf A,(r32b_eam)     is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101010 & A { xorcf(A,r32b_eam); }
-:ldcf  A,(r32b_eam)     is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101011 & A { ldcf(A,r32b_eam); }
-:stcf  A,(r32b_eam)     is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101100 & A { stcf(A,r32b_eam); }
+:andcf A,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101000 & A { andcf(A,r32b_eam); }
+:orcf  A,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101001 & A { orcf(A,r32b_eam); }
+:xorcf A,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101010 & A { xorcf(A,r32b_eam); }
+:ldcf  A,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101011 & A { ldcf(A,r32b_eam); }
+:stcf  A,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_00_07=0b00101100 & A { stcf(A,r32b_eam); }
 
 :andcf imm3_00_02,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b0 & imm3_00_02 { andcf(imm3_00_02,r32b_eam); }
 :orcf  imm3_00_02,(r32b_eam) is (op_07=0b1 & op_04_05=0b11) ... & r32b_eam ; op_04_07=0b1000 & op_03=0b1 & imm3_00_02 { orcf(imm3_00_02,r32b_eam); }
