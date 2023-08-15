@@ -239,7 +239,7 @@ macro setResultFlags(result) {
 macro setAddFlags(result, op1, op2) {
     setResultFlags(result);
     $(H_flag) = (((op1 ^ op2 ^ result) >> 4) & 1) != 0;
-    $(V_flag) = ((op1 ^ result) & (op1 ^ op2)) s< 0;
+    $(V_flag) = ((op1 ^ result) & (op2 ^ result)) s< 0;
     $(N_flag) = 0;
 }
 macro setSubtractFlags(result, op1, op2) {
