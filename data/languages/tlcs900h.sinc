@@ -531,8 +531,8 @@ macro tset(n, dst) {
 
 # (7) Special operations and CPU control
 macro sync_banks(prev_rfp) {
-# To simplify register updates, we only synchronize
-# the current and previous banks when switching to another bank.
+    # To simplify register updates, we only synchronize
+    # the current and previous banks when switching to another bank.
     XWA_P = XWA; XBC_P = XBC; XDE_P = XDE; XHL_P = XHL;
 
     if (prev_rfp == 1) goto <prev_st1>;
@@ -814,6 +814,7 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
     $(C_flag) = ~$(Z_flag);
     $(H_flag) = 0; # Undefined
 }
+
 :push A      is op_00_07=0x14 & A { push8(A); }
 :pop A       is op_00_07=0x15 & A { pop8(A); }
 :ex F,F_I    is op_00_07=0x16 & F & F_I { ex(F, F_I); }
