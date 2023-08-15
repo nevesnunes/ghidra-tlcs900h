@@ -331,7 +331,9 @@ macro inc(op1, op2) {
     if (tmp_imm != 0) goto <result>;
     tmp_imm = 8;
 <result>
+    local tmp_C = $(C_flag);
     add(op1, tmp_imm);
+    $(C_flag) = tmp_C;
 }
 macro incwl(op1, op2) {
     # #3 in operands indicates from 1 to 8; object codes correspond from 1 to 7,0.
@@ -348,7 +350,9 @@ macro dec(op1, op2) {
     if (tmp_imm != 0) goto <result>;
     tmp_imm = 8;
 <result>
+    local tmp_C = $(C_flag);
     sub(op1, tmp_imm);
+    $(C_flag) = tmp_C;
 }
 macro decwl(op1, op2) {
     # #3 in operands indicates from 1 to 8; object codes correspond from 1 to 7,0.

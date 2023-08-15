@@ -265,9 +265,9 @@
 :div   r16,(addr16i16)        is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,addr16i16); }
 :divs  r8,(addr16i16)         is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,addr16i16:1); }
 :divs  r16,(addr16i16)        is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,addr16i16); }
-:inc   imm3_00_02,(addr16i16) is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr16i16,imm3_00_02); }
+:inc   imm3_00_02,(addr16i8)  is op_00_07=0xc1 ; addr16i8  ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr16i8,imm3_00_02); }
 :incw  imm3_00_02,(addr16i16) is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr16i16,imm3_00_02); }
-:dec   imm3_00_02,(addr16i16) is op_00_07=0xc1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr16i16,imm3_00_02); }
+:dec   imm3_00_02,(addr16i8)  is op_00_07=0xc1 ; addr16i8  ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr16i8,imm3_00_02); }
 :decw  imm3_00_02,(addr16i16) is op_00_07=0xd1 ; addr16i16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr16i16,imm3_00_02); }
 :rlc   (addr16i16)            is op_00_07=0xc1 ; addr16i16 ; op_00_07=0x78 { rlc(1, addr16i16, 16); }
 :rlcw  (addr16i16)            is op_00_07=0xd1 ; addr16i16 ; op_00_07=0x78 { rlc(1, addr16i16, 16); }
@@ -377,10 +377,10 @@
 :div   r16,(addr24i16)        is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { div(r16,addr24i16); }
 :divs  r8,(addr24i8)          is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b0101 & op_03=0b1 & r8  { divs(r8,addr24i8); }
 :divs  r16,(addr24i16)        is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b0101 & op_03=0b1 & r16 { divs(r16,addr24i16); }
-:inc   imm3_00_02,(addr24i24) is op_00_07=0xc2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr24i24,imm3_00_02); }
-:incw  imm3_00_02,(addr24i24) is op_00_07=0xd2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr24i24,imm3_00_02); }
-:dec   imm3_00_02,(addr24i24) is op_00_07=0xc2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr24i24,imm3_00_02); }
-:decw  imm3_00_02,(addr24i24) is op_00_07=0xd2 ; addr24i24 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr24i24,imm3_00_02); }
+:inc   imm3_00_02,(addr24i8)  is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr24i8,imm3_00_02); }
+:incw  imm3_00_02,(addr24i16) is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b0110 & op_03=0b0 & imm3_00_02 { inc(addr24i16,imm3_00_02); }
+:dec   imm3_00_02,(addr24i8)  is op_00_07=0xc2 ; addr24i8  ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr24i8,imm3_00_02); }
+:decw  imm3_00_02,(addr24i16) is op_00_07=0xd2 ; addr24i16 ; op_04_07=0b0110 & op_03=0b1 & imm3_00_02 { dec(addr24i16,imm3_00_02); }
 :rlc   (addr24i8)             is op_00_07=0xc2 ; addr24i8  ; op_00_07=0x78 { rlc(1, addr24i8, 8); }
 :rlcw  (addr24i16)            is op_00_07=0xd2 ; addr24i16 ; op_00_07=0x78 { rlc(1, addr24i16, 16); }
 :rrc   (addr24i8)             is op_00_07=0xc2 ; addr24i8  ; op_00_07=0x79 { rrc(1, addr24i8, 8); }
