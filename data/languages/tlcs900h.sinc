@@ -43,12 +43,14 @@ define token ins16 (16)
    w_op_11 = (11,11)
    w_op_12_15 = (12,15)
 
+   w_rm8_00_02 = (0,2)
+   w_rm8x_00_02 = (0,2)
    w_rm16_00_02 = (0,2)
    w_rm32_00_02 = (0,2)
-   w_rm8_00_02 = (0,2)
+   w_rn8_08_10 = (8,10)
+   w_rn8x_08_10 = (8,10)
    w_rn16_08_10 = (8,10)
    w_rn32_08_10 = (8,10)
-   w_rn8_08_10 = (8,10)
 
    w_imm3_00_02 = (0,2)
    w_imm3_08_10 = (8,10)
@@ -94,9 +96,10 @@ define token data32 (32)
    simm32 = (0,31) signed
 ;
 
-attach variables [ r32 w_rm32_00_02 w_rn32_08_10 ] [ XWA XBC XDE XHL XIX XIY XIZ XSP ];
-attach variables [ r16 w_rm16_00_02 w_rn16_08_10 ] [ WA BC DE HL IX IY IZ SP ];
-attach variables [ r8  w_rm8_00_02  w_rn8_08_10  ] [ W A B C D E H L ];
+attach variables [ r32  w_rm32_00_02  w_rn32_08_10 ] [ XWA XBC XDE XHL XIX XIY XIZ XSP ];
+attach variables [ r16  w_rm16_00_02  w_rn16_08_10 ] [ WA BC DE HL IX IY IZ SP ];
+attach variables [      w_rm8x_00_02  w_rn8x_08_10 ] [ WA WA BC BC DE DE HL HL ];
+attach variables [ r8   w_rm8_00_02   w_rn8_08_10  ] [ W A B C D E H L ];
 
 # Banked registers
 attach variables [ r8b_00_07 l_r8b_16_23 ] [
@@ -316,7 +319,7 @@ macro sub(op1, op2) {
     local tmp_op2 = op2;
     op1 = op1 - op2;
     setSubtractFlags(op1, tmp_op1, tmp_op2);
-    $(C_flag) = sborrow(tmp_op1, tmp_op2);
+    $(C_flag) = tmp_op1 < tmp_op2;
 }
 macro sub32(op1, op2) {
     sub(op1, op2);
@@ -326,10 +329,11 @@ macro sbc(op1, op2) {
     local tmp_op1 = op1;
     local tmp_op2 = op2;
     local tmp_C = $(C_flag);
-    op1 = op1 - op2;
+    op1 = op1 - op2 - zext(tmp_C);
     setSubtractFlags(op1, tmp_op1, tmp_op2);
-    not_C = ~tmp_C;
-    $(C_flag) = ((tmp_op1 < sext(not_C)) || (tmp_op2 < (tmp_op1 - sext(not_C))));
+    local carries = tmp_op1 ^ tmp_op2 ^ op1;
+    local overflow = (tmp_op1 ^ op1) & (tmp_op2 ^ tmp_op1);
+    $(C_flag) = (carries ^ overflow) s< 0;
 }
 macro sbc32(op1, op2) {
     sbc(op1, op2);
@@ -386,7 +390,7 @@ macro neg(op1) {
     local tmp_op1 = op1;
     op1 = -op1;
     setSubtractFlags(op1, 0, tmp_op1);
-    $(C_flag) = sborrow(0, tmp_op1);
+    $(C_flag) = 0 < tmp_op1;
 }
 macro daa(dst) {
     local tmp:1 = dst;
@@ -597,7 +601,7 @@ macro bs1f(dst, src) {
     $(V_flag) = 0;
     goto <end>;
 <next_bit>
-    i = i + 1; 
+    i = i + 1;
     if (i < 16) goto <search>;
     $(V_flag) = 1;
 <end>
@@ -611,7 +615,7 @@ macro bs1b(dst, src) {
     $(V_flag) = 0;
     goto <end>;
 <next_bit>
-    i = i - 1; 
+    i = i - 1;
     if (i > -1) goto <search>;
     $(V_flag) = 1;
 <end>
@@ -966,16 +970,16 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 # than specified in the User Manual. This is a workaround for
 # expanded storage of the operation result without register space
 # hacks. We use truncation in macros to compute expected results.
-:mul  w_rm16_00_02,imm8  is w_op_08_15=0b1000 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { mul8(w_rm16_00_02,imm8:1); }
+:mul  w_rm8x_00_02,imm8  is w_op_08_15=0b1000 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8x_00_02 ; imm8  { mul8(w_rm8x_00_02,imm8:1); }
 :mul  w_rm32_00_02,imm16 is w_op_08_15=0b1000 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { mul16(w_rm32_00_02,imm16:2); }
 :mul  w_rm32_00_02,imm32 is w_op_08_15=0b1000 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { mul(w_rm32_00_02,imm32:4); }
-:muls w_rm16_00_02,imm8  is w_op_08_15=0b1001 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { muls8(w_rm16_00_02,imm8:1); }
+:muls w_rm8x_00_02,imm8  is w_op_08_15=0b1001 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8x_00_02 ; imm8  { muls8(w_rm8x_00_02,imm8:1); }
 :muls w_rm32_00_02,imm16 is w_op_08_15=0b1001 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { muls16(w_rm32_00_02,imm16:2); }
 :muls w_rm32_00_02,imm32 is w_op_08_15=0b1001 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { muls(w_rm32_00_02,imm32:4); }
-:div  w_rm16_00_02,imm8  is w_op_08_15=0b1010 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { div(w_rm16_00_02,imm8:1); }
+:div  w_rm8x_00_02,imm8  is w_op_08_15=0b1010 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8x_00_02 ; imm8  { div(w_rm8x_00_02,imm8:1); }
 :div  w_rm32_00_02,imm16 is w_op_08_15=0b1010 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { div(w_rm32_00_02,imm16:2); }
 :div  w_rm32_00_02,imm32 is w_op_08_15=0b1010 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { div(w_rm32_00_02,imm32:4); }
-:divs w_rm16_00_02,imm8  is w_op_08_15=0b1011 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm16_00_02 ; imm8  { divs(w_rm16_00_02,imm8:1); }
+:divs w_rm8x_00_02,imm8  is w_op_08_15=0b1011 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8x_00_02 ; imm8  { divs(w_rm8x_00_02,imm8:1); }
 :divs w_rm32_00_02,imm16 is w_op_08_15=0b1011 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm32_00_02 ; imm16 { divs(w_rm32_00_02,imm16:2); }
 :divs w_rm32_00_02,imm32 is w_op_08_15=0b1011 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 ; imm32 { divs(w_rm32_00_02,imm32:4); }
 
@@ -1050,18 +1054,18 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :mdec2 imm16,w_rm16_00_02 is w_op_08_15=0x3d & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { mdec(imm16, w_rm16_00_02, 2); }
 :mdec4 imm16,w_rm16_00_02 is w_op_08_15=0x3e & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 ; imm16 { mdec(imm16, w_rm16_00_02, 4); }
 
-:mul  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { mul(w_rn8_08_10,w_rm8_00_02); }
-:mul  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { mul(w_rn16_08_10,w_rm16_00_02); }
-:mul  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { mul(w_rn32_08_10,w_rm32_00_02); }
-:muls w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { muls(w_rn8_08_10,w_rm8_00_02); }
-:muls w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { muls(w_rn16_08_10,w_rm16_00_02); }
-:muls w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { muls(w_rn32_08_10,w_rm32_00_02); }
-:div  w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { div(w_rn8_08_10,w_rm8_00_02); }
-:div  w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { div(w_rn16_08_10,w_rm16_00_02); }
-:div  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { div(w_rn32_08_10,w_rm32_00_02); }
-:divs w_rn8_08_10,w_rm8_00_02    is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { divs(w_rn8_08_10,w_rm8_00_02); }
-:divs w_rn16_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { divs(w_rn16_08_10,w_rm16_00_02); }
-:divs w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { divs(w_rn32_08_10,w_rm32_00_02); }
+:mul  w_rn8x_08_10,w_rm8_00_02   is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn8x_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { mul8(w_rn8x_08_10,w_rm8_00_02:1); }
+:mul  w_rn32_08_10,w_rm16_00_02  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { mul16(w_rn32_08_10,w_rm16_00_02:2); }
+:mul  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { mul(w_rn32_08_10,w_rm32_00_02:4); }
+:muls w_rn8x_08_10,w_rm8_00_02   is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn8x_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { muls8(w_rn8x_08_10,w_rm8_00_02:1); }
+:muls w_rn32_08_10,w_rm16_00_02  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { muls16(w_rn32_08_10,w_rm16_00_02:2); }
+:muls w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { muls(w_rn32_08_10,w_rm32_00_02:4); }
+:div  w_rn8x_08_10,w_rm8_00_02   is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn8x_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { div(w_rn8x_08_10,w_rm8_00_02:1); }
+:div  w_rn32_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { div(w_rn32_08_10,w_rm16_00_02:2); }
+:div  w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { div(w_rn32_08_10,w_rm32_00_02:4); }
+:divs w_rn8x_08_10,w_rm8_00_02   is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8x_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { divs(w_rn8x_08_10,w_rm8_00_02:1); }
+:divs w_rn32_08_10,w_rm16_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { divs(w_rn32_08_10,w_rm16_00_02:2); }
+:divs w_rn32_08_10,w_rm32_00_02  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { divs(w_rn32_08_10,w_rm32_00_02:4); }
 :inc  w_imm3_08_10,w_rm8_00_02   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1100 & w_op_03=0b1 & w_rm8_00_02  { inc(w_rm8_00_02,w_imm3_08_10); }
 :inc  w_imm3_08_10,w_rm16_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1101 & w_op_03=0b1 & w_rm16_00_02 { incwl(w_rm16_00_02,w_imm3_08_10); }
 :inc  w_imm3_08_10,w_rm32_00_02  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1110 & w_op_03=0b1 & w_rm32_00_02 { incwl(w_rm32_00_02,w_imm3_08_10); }
@@ -1251,18 +1255,18 @@ w_cc: "NC/UGE" is w_flags_08_11=0xf { c:1 = $(C_flag) == 0; export c; }
 :or    (addr32m16),imm16         is w_op_08_15=0x3e & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 ; imm16 { or(addr32m16,imm16); }
 :cp    (addr32m8),imm8           is w_op_08_15=0x3f & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  ; imm8  { cp(addr32m8,imm8); }
 :cp    (addr32m16),imm16         is w_op_08_15=0x3f & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 ; imm16 { cp(addr32m16,imm16); }
-:mul   w_rn8_08_10,(addr32m8)    is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { mul(w_rn8_08_10,addr32m8); }
-:mul   w_rn16_08_10,(addr32m16)  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { mul(w_rn16_08_10,addr32m16); }
-:mul   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { mul(w_rn32_08_10,addr32m32); }
-:muls  w_rn8_08_10,(addr32m8)    is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { muls(w_rn8_08_10,addr32m8); }
-:muls  w_rn16_08_10,(addr32m16)  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { muls(w_rn16_08_10,addr32m16); }
-:muls  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { muls(w_rn32_08_10,addr32m32); }
-:div   w_rn8_08_10,(addr32m8)    is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { div(w_rn8_08_10,addr32m8); }
-:div   w_rn16_08_10,(addr32m16)  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { div(w_rn16_08_10,addr32m16); }
-:div   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { div(w_rn32_08_10,addr32m32); }
-:divs  w_rn8_08_10,(addr32m8)    is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8_08_10  & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { divs(w_rn8_08_10,addr32m8); }
-:divs  w_rn16_08_10,(addr32m16)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn16_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { divs(w_rn16_08_10,addr32m16); }
-:divs  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { divs(w_rn32_08_10,addr32m32); }
+:mul   w_rn8x_08_10,(addr32m8)   is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn8x_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { mul8(w_rn8x_08_10,addr32m8:1); }
+:mul   w_rn32_08_10,(addr32m16)  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { mul16(w_rn32_08_10,addr32m16:2); }
+:mul   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0100 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { mul(w_rn32_08_10,addr32m32:4); }
+:muls  w_rn8x_08_10,(addr32m8)   is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn8x_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { muls8(w_rn8x_08_10,addr32m8:1); }
+:muls  w_rn32_08_10,(addr32m16)  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { muls16(w_rn32_08_10,addr32m16:2); }
+:muls  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0100 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { muls(w_rn32_08_10,addr32m32:4); }
+:div   w_rn8x_08_10,(addr32m8)   is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn8x_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { div(w_rn8x_08_10,addr32m8:1); }
+:div   w_rn32_08_10,(addr32m16)  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { div(w_rn32_08_10,addr32m16:2); }
+:div   w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b0 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { div(w_rn32_08_10,addr32m32:4); }
+:divs  w_rn8x_08_10,(addr32m8)   is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn8x_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { divs(w_rn8x_08_10,addr32m8:1); }
+:divs  w_rn32_08_10,(addr32m16)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { divs(w_rn32_08_10,addr32m16:2); }
+:divs  w_rn32_08_10,(addr32m32)  is w_op_12_15=0b0101 & w_op_11=0b1 & w_rn32_08_10 & w_op_04_07=0b1010 & w_op_03=0b0 & addr32m32 { divs(w_rn32_08_10,addr32m32:4); }
 :inc   w_imm3_08_10,(addr32m8)   is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { inc(addr32m8,w_imm3_08_10); }
 :incw  w_imm3_08_10,(addr32m16)  is w_op_12_15=0b0110 & w_op_11=0b0 & w_imm3_08_10 & w_op_04_07=0b1001 & w_op_03=0b0 & addr32m16 { incwl(addr32m16,w_imm3_08_10); }
 :dec   w_imm3_08_10,(addr32m8)   is w_op_12_15=0b0110 & w_op_11=0b1 & w_imm3_08_10 & w_op_04_07=0b1000 & w_op_03=0b0 & addr32m8  { dec(addr32m8,w_imm3_08_10); }
