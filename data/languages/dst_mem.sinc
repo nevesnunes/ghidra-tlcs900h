@@ -96,14 +96,14 @@
 :ld (addr16i16),imm16        is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b0010 ; imm16 { addr16i16 = imm16; }
 :pop (addr16i8)              is op_00_07=0xf1 ; addr16i8  ; op_00_07=0b0100 { pop8(addr16i8); }
 :popw (addr16i16)            is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b0110 { pop16(addr16i16); }
-:ld (addr16i8),(addr_16i8)   is op_00_07=0xf1 ; addr16i8  ; op_00_07=0b00010100 ; addr_16i8 { addr16i8 = addr_16i8; }
-:ld (addr16i16),(addr_16i16) is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00010110 ; addr_16i16 { addr16i16 = addr_16i16; }
+:ld (addr16i8),(addr16i8_)   is op_00_07=0xf1 ; addr16i8  ; op_00_07=0b00010100 ; addr16i8_ { addr16i8 = addr16i8_; }
+:ld (addr16i16),(addr16i16_) is op_00_07=0xf1 ; addr16i16 ; op_00_07=0b00010110 ; addr16i16_ { addr16i16 = addr16i16_; }
 
-:lda r16,imm16      is op_00_07=0xf1 ; imm16    ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm16; }
-:lda r32,imm16      is op_00_07=0xf1 ; imm16    ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm16; }
-:ld (addr16i8),r8   is op_00_07=0xf1 ; addr16i8 ; op_04_07=0b0100 & op_03=0b0 & r8  { addr16i8 = r8; }
-:ld (addr16),r16    is op_00_07=0xf1 ; addr16   ; op_04_07=0b0101 & op_03=0b0 & r16 { addr16 = r16; }
-:ld (addr16),r32    is op_00_07=0xf1 ; addr16   ; op_04_07=0b0110 & op_03=0b0 & r32 { local tmp = r32 & 0xffff; addr16 = tmp:2; }
+:lda r16,imm16      is op_00_07=0xf1 ; imm16     ; op_04_07=0b0010 & op_03=0b0 & r16 { r16 = imm16; }
+:lda r32,imm16      is op_00_07=0xf1 ; imm16     ; op_04_07=0b0011 & op_03=0b0 & r32 { r32 = imm16; }
+:ld (addr16i8),r8   is op_00_07=0xf1 ; addr16i8  ; op_04_07=0b0100 & op_03=0b0 & r8  { addr16i8 = r8; }
+:ld (addr16i16),r16 is op_00_07=0xf1 ; addr16i16 ; op_04_07=0b0101 & op_03=0b0 & r16 { addr16i16 = r16; }
+:ld (addr16i32),r32 is op_00_07=0xf1 ; addr16i32 ; op_04_07=0b0110 & op_03=0b0 & r32 { addr16i32 = r32; }
 
 :andcf A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101000 & A { andcf(A,addr16i8); }
 :orcf  A,(addr16i8) is op_00_07=0xf1 ; addr16i8 ; op_00_07=0b00101001 & A { orcf(A,addr16i8); }

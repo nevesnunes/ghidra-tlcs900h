@@ -785,9 +785,9 @@ addr8i8:    imm8  is imm8  { export *:1 imm8; }
 addr8i16:   imm8  is imm8  { export *:2 imm8; }
 addr8i32:   imm8  is imm8  { export *:4 imm8; }
 addr16i8:   imm16 is imm16 { export *:1 imm16; }
-addr_16i8:  imm16 is imm16 { export *:1 imm16; }
+addr16i8_:  imm16 is imm16 { export *:1 imm16; }
 addr16i16:  imm16 is imm16 { export *:2 imm16; }
-addr_16i16: imm16 is imm16 { export *:2 imm16; }
+addr16i16_: imm16 is imm16 { export *:2 imm16; }
 addr16i32:  imm16 is imm16 { export *:4 imm16; }
 addr24i8:   imm24 is imm24 { export *:1 imm24; }
 addr24i16:  imm24 is imm24 { export *:2 imm24; }
