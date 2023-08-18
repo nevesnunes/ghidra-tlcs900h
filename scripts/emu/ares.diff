@@ -1,0 +1,316 @@
+diff --git a/ares/ares/node/debugger/tracer/instruction.hpp b/ares/ares/node/debugger/tracer/instruction.hpp
+index 0c354c3b2..60401f1fd 100644
+--- a/ares/ares/node/debugger/tracer/instruction.hpp
++++ b/ares/ares/node/debugger/tracer/instruction.hpp
+@@ -40,12 +40,14 @@ struct Instruction : Tracer {
+     }
+ 
+     if(_depth) {
++      /*
+       for(auto history : _history) {
+         if(_address == history) {
+           _omitted++;
+           return false;  //do not trace again if recently traced
+         }
+       }
++      */
+       for(auto index : range(_depth - 1)) {
+         _history[index] = _history[index + 1];
+       }
+@@ -70,12 +72,14 @@ struct Instruction : Tracer {
+   auto notify(const string& instruction, const string& context, const string& extra = {}) -> void {
+     if(!enabled()) return;
+ 
++    /*
+     if(_omitted) {
+       PlatformLog({
+         "[Omitted: ", _omitted, "]\n"}
+       );
+       _omitted = 0;
+     }
++    */
+ 
+     string output{
+       _component, "  ",
+@@ -136,7 +140,7 @@ protected:
+ 
+ //unserialized:
+   n64 _address = 0;
+-  n64 _omitted = 0;
++  //n64 _omitted = 0;
+   vector<u64> _history;
+   hashset<VisitMask> _masks;
+ };
+diff --git a/ares/component/processor/tlcs900h/instructions.cpp b/ares/component/processor/tlcs900h/instructions.cpp
+index eb445c462..879382c87 100644
+--- a/ares/component/processor/tlcs900h/instructions.cpp
++++ b/ares/component/processor/tlcs900h/instructions.cpp
+@@ -88,6 +88,11 @@ auto TLCS900H::instructionCompareRepeat(Target target, Source source) -> void {
+ 
+ template<typename Target, typename Source>
+ auto TLCS900H::instructionCompare(Target target, Source source) -> void {
++  //auto pc = load(PC);
++  //auto t = load(target);
++  //auto s = load(source);
++  //fprintf(stderr, "%08x (%08x=>%08x),%08x\n", pc, target, t, s);
++  //algorithmSubtract(t, s);
+   algorithmSubtract(load(target), load(source));
+ }
+ 
+@@ -189,7 +194,15 @@ auto TLCS900H::instructionIncrement(Target target, Source source) -> void {
+     store(target, load(target) + immediate);
+   } else {
+     //incb #n,r; incb #n,(r); incw #n,(r): does update flags
+-    store(target, algorithmIncrement(load(target), immediate));
++    if (getenv("ARES_PRINT") != NULL) {
++        auto pc = load(PC);
++        auto t = load(target);
++        auto s = immediate;
++        store(target, algorithmIncrement(t, immediate));
++        fprintf(stderr, "inc @ %08x (%08x=>%08x),%08x H=%d\n", pc, target, t, s, HF);
++    } else {
++        store(target, algorithmIncrement(load(target), immediate));
++    }
+   }
+ }
+ 
+diff --git a/ares/ngp/apu/apu.hpp b/ares/ngp/apu/apu.hpp
+index 96e1d6d5a..51e63b5a2 100644
+--- a/ares/ngp/apu/apu.hpp
++++ b/ares/ngp/apu/apu.hpp
+@@ -11,6 +11,9 @@ struct APU : Z80, Z80::Bus, Thread {
+     auto instruction() -> void;
+     auto interrupt(string_view) -> void;
+ 
++    auto readIO(u16 address, u8 data) -> void;
++    auto writeIO(u16 address, u8 data) -> void;
++
+     struct Memory {
+       Node::Debugger::Memory ram;
+     } memory;
+@@ -18,6 +21,7 @@ struct APU : Z80, Z80::Bus, Thread {
+     struct Tracer {
+       Node::Debugger::Tracer::Instruction instruction;
+       Node::Debugger::Tracer::Notification interrupt;
++      Node::Debugger::Tracer::Notification io;
+     } tracer;
+   } debugger{*this};
+ 
+diff --git a/ares/ngp/apu/debugger.cpp b/ares/ngp/apu/debugger.cpp
+index e810f0ab3..a6e30785d 100644
+--- a/ares/ngp/apu/debugger.cpp
++++ b/ares/ngp/apu/debugger.cpp
+@@ -12,6 +12,8 @@ auto APU::Debugger::load(Node::Object parent) -> void {
+   tracer.instruction->setAddressBits(16);
+ 
+   tracer.interrupt = parent->append<Node::Debugger::Tracer::Notification>("Interrupt", "APU");
++
++  tracer.io = parent->append<Node::Debugger::Tracer::Notification>("I/O", "APU");
+ }
+ 
+ auto APU::Debugger::unload(Node::Object parent) -> void {
+@@ -33,3 +35,15 @@ auto APU::Debugger::interrupt(string_view type) -> void {
+   if(likely(!tracer.interrupt->enabled())) return;
+   tracer.interrupt->notify(type);
+ }
++
++auto APU::Debugger::readIO(u16 address, u8 data) -> void {
++  if(unlikely(tracer.io->enabled())) {
++    tracer.io->notify({"read  ", hex(address, 4L), " = ", hex(data, 2L)});
++  }
++}
++
++auto APU::Debugger::writeIO(u16 address, u8 data) -> void {
++  if(unlikely(tracer.io->enabled())) {
++    tracer.io->notify({"write ", hex(address, 4L), " = ", hex(data, 2L)});
++  }
++}
+diff --git a/ares/ngp/apu/memory.cpp b/ares/ngp/apu/memory.cpp
+index 9242d5775..0b98cca4d 100644
+--- a/ares/ngp/apu/memory.cpp
++++ b/ares/ngp/apu/memory.cpp
+@@ -1,17 +1,27 @@
+ auto APU::read(n16 address) -> n8 {
++  n8 data = 0;
++
+   if(address <= 0x0fff) {
+     while(cpu.MAR >= 0x7000 && cpu.MAR <= 0x7fff && !scheduler.synchronizing()) step(1);
+-    return ram.read(0x3000 | address);
+-  }
+-  switch(address) {
+-  case 0x8000:
+-    return port.data;
+-  default:
+-    return 0x00;
++    data = ram.read(0x3000 | address);
++  } else {
++      switch(address) {
++      case 0x8000:
++        data = port.data;
++        break;
++      default:
++        data = 0x00;
++      }
+   }
++
++  debugger.readIO(address, data);
++
++  return data;
+ }
+ 
+ auto APU::write(n16 address, n8 data) -> void {
++  debugger.writeIO(address, data);
++
+   if(address <= 0x0fff) {
+     while(cpu.MAR >= 0x7000 && cpu.MAR <= 0x7fff && !scheduler.synchronizing()) step(1);
+     return ram.write(0x3000 | address, data);
+diff --git a/ares/ngp/cpu/cpu.hpp b/ares/ngp/cpu/cpu.hpp
+index c36ab95f3..b69c8bcfc 100644
+--- a/ares/ngp/cpu/cpu.hpp
++++ b/ares/ngp/cpu/cpu.hpp
+@@ -10,6 +10,9 @@ struct CPU : TLCS900H, Thread {
+   struct Debugger {
+     CPU& self;
+ 
++    bool is_dumped = false;
++    u16  prev_watch_val = 0xffff;
++
+     //debugger.cpp
+     auto load(Node::Object) -> void;
+     auto unload(Node::Object) -> void;
+diff --git a/ares/ngp/cpu/debugger.cpp b/ares/ngp/cpu/debugger.cpp
+index 663b0bbdc..bd5d90ee1 100644
+--- a/ares/ngp/cpu/debugger.cpp
++++ b/ares/ngp/cpu/debugger.cpp
+@@ -166,6 +166,131 @@ auto CPU::Debugger::instruction() -> void {
+     }
+   }
+ 
++  auto PC = self.TLCS900H::load(self.TLCS900H::PC);
++
++  bool is_dump_end = false;
++  char * candidate_watch = getenv("ARES_WATCH");
++  if (candidate_watch != NULL) {
++      auto addr = (long)strtol(candidate_watch, NULL, 16);
++      auto p = cpu.read(2, addr);
++      if (p != prev_watch_val) {
++          fprintf(stderr, "WATCH @0x%X %08x->%08x\n", PC, addr, p);
++          prev_watch_val = p;
++          if (getenv("ARES_WATCH_ALSO_END") != NULL) {
++              is_dump_end = true;
++          }
++      }
++  }
++
++  char * candidate_end = getenv("ARES_END");
++  if (candidate_end != NULL && PC == (long)strtol(candidate_end, NULL, 16)) {
++      is_dump_end = true;
++  }
++
++  if (is_dump_end) {
++      fprintf(stderr, "Dump END @0x%X\n", PC);
++
++      char f_name[128];
++      memset(f_name, 0, sizeof(f_name));
++      sprintf(f_name, "/tmp/0x%08x.mem_end", PC);
++      FILE *f = fopen(f_name, "wb");
++      for (int i = 0; i < 0x003fffff; i+=4) {
++      //for (int i = 0; i < 0xc000; i+=4) {
++          u32 v = cpu.read(4, i);
++          if (fwrite(&v, sizeof(v), 1, f) < 1) {
++              fclose(f);
++              fprintf(stderr, "Error @0x%X\n", i);
++              return;
++          }
++      }
++      fclose(f);
++
++      exit(123);
++  }
++
++  if (!is_dumped) {
++      char * candidate_start = getenv("ARES_START");
++      if (candidate_start != NULL && PC == (long)strtol(candidate_start, NULL, 16)) {
++          fprintf(stderr, "Dump @0x%X\n", PC);
++
++          char f_name[128];
++          memset(f_name, 0, sizeof(f_name));
++          sprintf(f_name, "/tmp/0x%08x.mem", PC);
++          FILE *f = fopen(f_name, "wb");
++          for (int i = 0; i < 0xc000; i+=4) {
++              u32 v = cpu.read(4, i);
++              if (fwrite(&v, sizeof(v), 1, f) < 1) {
++                  fclose(f);
++                  fprintf(stderr, "Error @0x%X\n", i);
++                  return;
++              }
++          }
++          fclose(f);
++
++          memset(f_name, 0, sizeof(f_name));
++          sprintf(f_name, "/tmp/0x%08x.mem_0x280000", PC);
++          f = fopen(f_name, "wb");
++          for (int i = 0x280000; i < 0x3fffff; i+=4) {
++              u32 v = cpu.read(4, i);
++              if (fwrite(&v, sizeof(v), 1, f) < 1) {
++                  fclose(f);
++                  fprintf(stderr, "Error @0x%X\n", i);
++                  return;
++              }
++          }
++          fclose(f);
++
++          memset(f_name, 0, sizeof(f_name));
++          sprintf(f_name, "/tmp/0x%08x.reg", PC);
++          f = fopen(f_name, "wb");
++
++          fprintf(f, "PC:%08x\n", cpu.r.pc);
++          fprintf(f, "XWA_0:%08x\n", cpu.r.xwa[0]);
++          fprintf(f, "XBC_0:%08x\n", cpu.r.xbc[0]);
++          fprintf(f, "XDE_0:%08x\n", cpu.r.xde[0]);
++          fprintf(f, "XHL_0:%08x\n", cpu.r.xhl[0]);
++          fprintf(f, "XWA_1:%08x\n", cpu.r.xwa[1]);
++          fprintf(f, "XBC_1:%08x\n", cpu.r.xbc[1]);
++          fprintf(f, "XDE_1:%08x\n", cpu.r.xde[1]);
++          fprintf(f, "XHL_1:%08x\n", cpu.r.xhl[1]);
++          fprintf(f, "XWA_2:%08x\n", cpu.r.xwa[2]);
++          fprintf(f, "XBC_2:%08x\n", cpu.r.xbc[2]);
++          fprintf(f, "XDE_2:%08x\n", cpu.r.xde[2]);
++          fprintf(f, "XHL_2:%08x\n", cpu.r.xhl[2]);
++          fprintf(f, "XWA_3:%08x\n", cpu.r.xwa[3]);
++          fprintf(f, "XBC_3:%08x\n", cpu.r.xbc[3]);
++          fprintf(f, "XDE_3:%08x\n", cpu.r.xde[3]);
++          fprintf(f, "XHL_3:%08x\n", cpu.r.xhl[3]);
++          fprintf(f, "XIX:%08x\n", cpu.r.xix);
++          fprintf(f, "XIY:%08x\n", cpu.r.xiy);
++          fprintf(f, "XIZ:%08x\n", cpu.r.xiz);
++          fprintf(f, "XSP:%08x\n", cpu.r.xsp);
++          fprintf(f, "DMAS_0:%08x\n", cpu.r.dmas[0]);
++          fprintf(f, "DMAD_0:%08x\n", cpu.r.dmad[0]);
++          fprintf(f, "DMAM_0:%08x\n", cpu.r.dmam[0]);
++          fprintf(f, "DMAS_1:%08x\n", cpu.r.dmas[1]);
++          fprintf(f, "DMAD_1:%08x\n", cpu.r.dmad[1]);
++          fprintf(f, "DMAM_1:%08x\n", cpu.r.dmam[1]);
++          fprintf(f, "DMAS_2:%08x\n", cpu.r.dmas[2]);
++          fprintf(f, "DMAD_2:%08x\n", cpu.r.dmad[2]);
++          fprintf(f, "DMAM_2:%08x\n", cpu.r.dmam[2]);
++          fprintf(f, "DMAS_3:%08x\n", cpu.r.dmas[3]);
++          fprintf(f, "DMAD_3:%08x\n", cpu.r.dmad[3]);
++          fprintf(f, "DMAM_3:%08x\n", cpu.r.dmam[3]);
++          fprintf(f, "INTNEST:%08x\n", cpu.r.intnest);
++
++          auto SR = self.TLCS900H::load(self.TLCS900H::SR);
++          fprintf(f, "SR:%08x\n", SR);
++
++          fclose(f);
++
++          //printf("AAA %08x\n", cpu.r.xwa[0]);
++          //printf("AAA %08x\n", cpu.read(4, 0xfffe00));
++
++          is_dumped = true;
++      }
++  }
++
+   if(unlikely(tracer.instruction->enabled())) {
+     auto PC = self.TLCS900H::load(self.TLCS900H::PC);
+     if(tracer.instruction->address(PC)) {
