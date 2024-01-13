@@ -122,7 +122,7 @@ sort -u 1to7out 4to7out_ngp \
 # Take instruction bytes and write binary
 ./scripts/dis/dis2bin.py out out.bin
 
-# Disassemble with Ghidra. 
+# Disassemble with Ghidra.
 # Terminates early if an instruction could not be decoded at a given offset,
 # either because it's missing or incorrect in our SLEIGH specification.
 # Results are saved in ~/export/1.
@@ -208,3 +208,15 @@ Finally, compare output trace log against the one from ares:
 Example output from _CPU Test by Judge_, where we start emulating at the program's entrypoint, and all registers matched every stepped instruction, passing all tests:
 
 ![](tracediff.png)
+
+## Architecture
+
+It was a bit challenging to map some memory addressing modes, not that they go off the beaten path much, but the particular way Toshiba decided to encode them:
+
+<img src="mems.png" style="width: 30rem;"/>
+
+So far so good, now let's look at how they get included in an instruction:
+
+![](ins.png)
+
+Usually, variable length tokens like `r32b_eam` sit at the tail end of an instruction, but here, they happen to be in the middle, followed by `0x38` + an 8/16-bit immediate value `imm8/imm16`. SLEIGH expects variable tokens at the end of an instruction, which means that constructors had to be duplicated for each addressing mode with a distinct length. TODO: Could context vars avoid this duplication?
